@@ -8,8 +8,11 @@ with length normalisation. Three things are compared on ``test``:
 * paragraph-level hits (does a returned chunk contain the quoted paragraph),
 * reading cost: words in the top ``k`` chunks.
 
-The schemes differ in mean chunk length, so a paragraph hit is easier for the scheme
-with longer chunks. Hits per thousand words read is reported to make that visible.
+``section220`` and ``fixed220`` share a size setting but not a mean length: the
+section scheme closes passages early at boundaries, so its passages average about
+170 words against 220. A paragraph hit is easier for longer passages. ``fixed170`` is
+the control: fixed windows with the same mean length as the section scheme. Hits per
+thousand words read is reported as well.
 """
 
 from __future__ import annotations
@@ -20,7 +23,7 @@ from legalrag.experiments.common import Bench, adjust, aggregate, compare, mean
 from legalrag.provenance import run_record, write_result
 from legalrag.retrieval.core import words_at_k
 
-SCHEMES = ("section220", "fixed220")
+SCHEMES = ("section220", "fixed220", "fixed170")
 GRID = [(0.9, 0.5), (0.9, 0.75), (1.2, 0.5), (1.2, 0.75), (1.6, 0.75), (2.0, 0.75), (1.6, 0.9)]
 
 
@@ -66,15 +69,17 @@ def run(limit: int | None = None):
             )
         systems[scheme] = agg
 
-    a, b = per_query["section220"], per_query["fixed220"]
+    metrics = ("ndcg@10", "recall@10", "passage_hit@5", "passage_hit@10", "passage_mrr@10")
     comparisons = adjust(
         {
-            f"section vs fixed [{m}]": compare(a, b, m)
-            for m in ("ndcg@10", "recall@10", "passage_hit@5", "passage_hit@10", "passage_mrr@10")
+            f"section220 vs {other} [{m}]": compare(per_query["section220"], per_query[other], m)
+            for other in SCHEMES[1:]
+            for m in metrics
         }
     )
     results_dir = info["section220"].pop("results_dir")
-    info["fixed220"].pop("results_dir")
+    for other in SCHEMES[1:]:
+        info[other].pop("results_dir")
     result = run_record(
         {"experiment": "chunking", "retriever": "bm25", "tuned_on": "dev", "reported_on": "test"},
         info["section220"]["corpus_version"],

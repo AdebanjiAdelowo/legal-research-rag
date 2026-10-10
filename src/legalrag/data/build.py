@@ -25,7 +25,15 @@ from legalrag.data.schema import Case, Chunk, Query
 from legalrag.paths import Paths
 from legalrag.provenance import read_jsonl, write_jsonl
 
-CHUNK_SCHEMES = {"section220": ("section", 220), "fixed220": ("fixed", 220)}
+# name -> (scheme, size in words, extra arguments). The first two are built with the
+# corpus. ``fixed170`` is a length-matched control for the chunking comparison: its
+# mean passage length equals that of ``section220``. It is built on first use.
+CHUNK_SCHEMES: dict[str, tuple[str, int, dict]] = {
+    "section220": ("section", 220, {}),
+    "fixed220": ("fixed", 220, {}),
+    "fixed170": ("fixed", 170, {"overlap": 30}),
+}
+BUILT_WITH_CORPUS = ("section220", "fixed220")
 QUERY_SIZES = {"dev": 800, "test": 2000, "history": 800}
 MULTI_SIZES = {"dev": 300, "test": 600}
 
@@ -34,7 +42,32 @@ def load_corpus(paths: Paths) -> dict[str, Case]:
     return {d["case_id"]: Case.from_json(d) for d in read_jsonl(paths.corpus)}
 
 
-def load_chunks(paths: Paths, scheme: str) -> list[Chunk]:
+def write_chunks(paths: Paths, name: str, cases: dict[str, Case]) -> dict:
+    """Chunk every case under one scheme, write the file, return length statistics."""
+    scheme, size, extra = CHUNK_SCHEMES[name]
+    lengths: list[int] = []
+
+    def rows():
+        for chunk in chunk_cases(cases.values(), scheme, size=size, **extra):
+            chunk.scheme = name
+            chunk.chunk_id = chunk.chunk_id.replace(f"#{scheme}{size}-", f"#{name}-")
+            lengths.append(len(chunk.text.split()))
+            yield chunk.to_json()
+
+    n = write_jsonl(paths.chunks(name), rows())
+    return {
+        "chunks": n,
+        "words_mean": round(statistics.mean(lengths), 1),
+        "words_median": statistics.median(lengths),
+        "words_p95": sorted(lengths)[int(0.95 * n)],
+    }
+
+
+def load_chunks(paths: Paths, scheme: str, cases: dict[str, Case] | None = None) -> list[Chunk]:
+    """Chunks of one scheme. A known scheme that was not built with the corpus is
+    generated from the parsed corpus on first use."""
+    if not paths.chunks(scheme).exists() and scheme in CHUNK_SCHEMES:
+        write_chunks(paths, scheme, cases or load_corpus(paths))
     return [Chunk(**d) for d in read_jsonl(paths.chunks(scheme))]
 
 
@@ -107,22 +140,7 @@ def build(paths: Paths, lepard_path: Path | None = None) -> dict:
     version = corpus_version(cases)
     write_jsonl(paths.corpus, (c.to_json() for c in cases.values()))
 
-    chunk_stats: dict[str, dict] = {}
-    for name, (scheme, size) in CHUNK_SCHEMES.items():
-        lengths: list[int] = []
-
-        def rows(scheme=scheme, size=size, lengths=lengths):
-            for chunk in chunk_cases(cases.values(), scheme, size=size):
-                lengths.append(len(chunk.text.split()))
-                yield chunk.to_json()
-
-        n = write_jsonl(paths.chunks(name), rows())
-        chunk_stats[name] = {
-            "chunks": n,
-            "words_mean": round(statistics.mean(lengths), 1),
-            "words_median": statistics.median(lengths),
-            "words_p95": sorted(lengths)[int(0.95 * n)],
-        }
+    chunk_stats = {name: write_chunks(paths, name, cases) for name in BUILT_WITH_CORPUS}
 
     candidates, quotes, multi, stats = benchmark.collect(
         fetch.read_lepard(lepard_path), cases, aliases

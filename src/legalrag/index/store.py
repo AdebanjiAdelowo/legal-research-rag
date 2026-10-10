@@ -45,10 +45,9 @@ class ChunkStore:
 
     @classmethod
     def load(cls, paths: Paths, scheme: str) -> ChunkStore:
-        return cls.from_parts(
-            scheme, load_manifest(paths)["corpus_version"], load_chunks(paths, scheme),
-            load_corpus(paths),
-        )  # fmt: skip
+        cases = load_corpus(paths)
+        chunks = load_chunks(paths, scheme, cases)
+        return cls.from_parts(scheme, load_manifest(paths)["corpus_version"], chunks, cases)
 
     @classmethod
     def from_parts(
