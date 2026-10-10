@@ -1,5 +1,5 @@
 {
-  "created": "2026-10-10T09:38:58+0200",
+  "created": "2026-10-10T13:36:02+0200",
   "config": {
     "experiment": "chunking",
     "retriever": "bm25",
@@ -8,17 +8,14 @@
   },
   "corpus_version": "c1b900e309df",
   "git": {
-    "commit": "b240bac74d630e324cfcfc3c41adfa98e7d0bd3f",
+    "commit": "72d0d11d3287dc5f0ce7921a7422f4bcdd7df8e9",
     "dirty_paths": [
-      "results/",
-      "src/legalrag/experiments/abstention.py",
-      "src/legalrag/experiments/chunking.py",
-      "src/legalrag/experiments/citations.py",
-      "src/legalrag/experiments/decomposition.py",
-      "src/legalrag/experiments/fixtures.py",
-      "src/legalrag/experiments/judge.py",
-      "src/legalrag/experiments/jurisdiction.py",
-      "src/legalrag/experiments/temporal.py"
+      "EADME.md",
+      "scripts/make_results_tables.py",
+      "src/legalrag/experiments/rerank.py",
+      "results/analysis/",
+      "results/rerank/",
+      "results/verification/judge_validation_lexical+nli-xsmall+nli-base.json"
     ]
   },
   "versions": {
@@ -51,6 +48,16 @@
         "k1": 2.0,
         "b": 0.75,
         "dev_ndcg@10": 0.2132
+      },
+      "n_test": 2000,
+      "corpus_version": "c1b900e309df"
+    },
+    "fixed170": {
+      "chunks": 268990,
+      "bm25": {
+        "k1": 0.9,
+        "b": 0.75,
+        "dev_ndcg@10": 0.2079
       },
       "n_test": 2000,
       "corpus_version": "c1b900e309df"
@@ -268,53 +275,204 @@
       },
       "passage_hits_per_1000_words@5": 0.1046,
       "passage_hits_per_1000_words@10": 0.0727
+    },
+    "fixed170": {
+      "recall@1": {
+        "mean": 0.0775,
+        "ci_low": 0.066,
+        "ci_high": 0.089,
+        "n": 2000
+      },
+      "recall@5": {
+        "mean": 0.2305,
+        "ci_low": 0.212,
+        "ci_high": 0.25,
+        "n": 2000
+      },
+      "recall@10": {
+        "mean": 0.31,
+        "ci_low": 0.2895,
+        "ci_high": 0.3305,
+        "n": 2000
+      },
+      "recall@20": {
+        "mean": 0.4095,
+        "ci_low": 0.3875,
+        "ci_high": 0.4315,
+        "n": 2000
+      },
+      "recall@100": {
+        "mean": 0.679,
+        "ci_low": 0.658,
+        "ci_high": 0.7,
+        "n": 2000
+      },
+      "mrr@10": {
+        "mean": 0.1422,
+        "ci_low": 0.13,
+        "ci_high": 0.1547,
+        "n": 2000
+      },
+      "ndcg@10": {
+        "mean": 0.1817,
+        "ci_low": 0.1684,
+        "ci_high": 0.1958,
+        "n": 2000
+      },
+      "precision@1": {
+        "mean": 0.0775,
+        "ci_low": 0.066,
+        "ci_high": 0.089,
+        "n": 2000
+      },
+      "precision@5": {
+        "mean": 0.0461,
+        "ci_low": 0.0424,
+        "ci_high": 0.05,
+        "n": 2000
+      },
+      "precision@10": {
+        "mean": 0.031,
+        "ci_low": 0.029,
+        "ci_high": 0.033,
+        "n": 2000
+      },
+      "passage_hit@1": {
+        "mean": 0.0426,
+        "ci_low": 0.0336,
+        "ci_high": 0.0517,
+        "n": 1994
+      },
+      "passage_hit@5": {
+        "mean": 0.1038,
+        "ci_low": 0.0913,
+        "ci_high": 0.1174,
+        "n": 1994
+      },
+      "passage_hit@10": {
+        "mean": 0.1454,
+        "ci_low": 0.1299,
+        "ci_high": 0.161,
+        "n": 1994
+      },
+      "passage_hit@20": {
+        "mean": 0.2187,
+        "ci_low": 0.2016,
+        "ci_high": 0.2372,
+        "n": 1994
+      },
+      "passage_mrr@10": {
+        "mean": 0.07,
+        "ci_low": 0.0606,
+        "ci_high": 0.0803,
+        "n": 1994
+      },
+      "words@5": {
+        "mean": 848.7545,
+        "ci_low": 848.1124,
+        "ci_high": 849.2275,
+        "n": 2000
+      },
+      "words@10": {
+        "mean": 1697.4635,
+        "ci_low": 1696.67,
+        "ci_high": 1698.1075,
+        "n": 2000
+      },
+      "passage_hits_per_1000_words@5": 0.1223,
+      "passage_hits_per_1000_words@10": 0.0857
     }
   },
   "comparisons": {
-    "section vs fixed [ndcg@10]": {
+    "section220 vs fixed220 [ndcg@10]": {
       "metric": "ndcg@10",
       "diff": -0.0121,
       "ci_low": -0.0201,
       "ci_high": -0.0043,
       "p": 0.0024,
       "n": 2000,
-      "p_holm": 0.0048
+      "p_holm": 0.0144
     },
-    "section vs fixed [recall@10]": {
+    "section220 vs fixed220 [recall@10]": {
       "metric": "recall@10",
       "diff": -0.0115,
       "ci_low": -0.0255,
       "ci_high": 0.0015,
       "p": 0.10649,
       "n": 2000,
-      "p_holm": 0.10649
+      "p_holm": 0.21298
     },
-    "section vs fixed [passage_hit@5]": {
+    "section220 vs fixed220 [passage_hit@5]": {
       "metric": "passage_hit@5",
       "diff": -0.0236,
       "ci_low": -0.0346,
       "ci_high": -0.0125,
       "p": 0.0001,
       "n": 1994,
-      "p_holm": 0.0005
+      "p_holm": 0.001
     },
-    "section vs fixed [passage_hit@10]": {
+    "section220 vs fixed220 [passage_hit@10]": {
       "metric": "passage_hit@10",
       "diff": -0.0331,
       "ci_low": -0.0456,
       "ci_high": -0.0216,
       "p": 0.0001,
       "n": 1994,
-      "p_holm": 0.0005
+      "p_holm": 0.001
     },
-    "section vs fixed [passage_mrr@10]": {
+    "section220 vs fixed220 [passage_mrr@10]": {
       "metric": "passage_mrr@10",
       "diff": -0.0201,
       "ci_low": -0.0274,
       "ci_high": -0.0129,
       "p": 0.0001,
       "n": 1994,
-      "p_holm": 0.0005
+      "p_holm": 0.001
+    },
+    "section220 vs fixed170 [ndcg@10]": {
+      "metric": "ndcg@10",
+      "diff": -0.0088,
+      "ci_low": -0.0166,
+      "ci_high": -0.0008,
+      "p": 0.0281,
+      "n": 2000,
+      "p_holm": 0.0844
+    },
+    "section220 vs fixed170 [recall@10]": {
+      "metric": "recall@10",
+      "diff": -0.008,
+      "ci_low": -0.0205,
+      "ci_high": 0.0055,
+      "p": 0.25627,
+      "n": 2000,
+      "p_holm": 0.25627
+    },
+    "section220 vs fixed170 [passage_hit@5]": {
+      "metric": "passage_hit@5",
+      "diff": -0.0125,
+      "ci_low": -0.0221,
+      "ci_high": -0.0025,
+      "p": 0.0211,
+      "n": 1994,
+      "p_holm": 0.0844
+    },
+    "section220 vs fixed170 [passage_hit@10]": {
+      "metric": "passage_hit@10",
+      "diff": -0.0191,
+      "ci_low": -0.0316,
+      "ci_high": -0.0065,
+      "p": 0.0025,
+      "n": 1994,
+      "p_holm": 0.0144
+    },
+    "section220 vs fixed170 [passage_mrr@10]": {
+      "metric": "passage_mrr@10",
+      "diff": -0.0156,
+      "ci_low": -0.0225,
+      "ci_high": -0.0087,
+      "p": 0.0001,
+      "n": 1994,
+      "p_holm": 0.001
     }
   }
 }

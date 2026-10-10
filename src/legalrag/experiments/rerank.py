@@ -8,6 +8,10 @@ paired difference, and the added latency per query.
 
 A reranker can only reorder what the first stage returned, so its ceiling is the
 first stage's recall at ``top_n``; that ceiling is reported alongside.
+
+The depth grid does not include "no reranking". The development score of the first
+stage alone is recorded next to the grid, so a reranker that is worse than no
+reranker at every depth is visible before the test set is touched.
 """
 
 from __future__ import annotations
@@ -64,6 +68,7 @@ def run(
     dev, test = bench.queries("dev", int(dev_limit)), bench.queries("test", limit)
 
     dev_run = _first_stage(bench, dev, encoder, fusion, float(alpha), int(rrf_k))
+    dev_first_stage = round(mean(bench.evaluate(dev_run, dev)["ndcg@10"]), 4)
     grid = {}
     for top_n in (20, 50, 100):
         reranked = _rerank(bench, dev_run, dev, model, top_n)
@@ -93,6 +98,7 @@ def run(
             "n_test": len(test),
         },
         bench.store.corpus_version,
+        dev_first_stage_ndcg10=dev_first_stage,
         dev_grid={str(k): v for k, v in grid.items()},
         top_n=best_n,
         first_stage=aggregate(pq_base),

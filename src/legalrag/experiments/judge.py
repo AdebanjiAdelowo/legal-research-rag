@@ -24,18 +24,20 @@ from legalrag.eval.stats import auroc, wilson
 from legalrag.experiments.citations import negate
 from legalrag.experiments.common import Bench
 from legalrag.provenance import run_record, write_result
-from legalrag.verify.judges import SUPPORTED, make_judge
+from legalrag.verify.judges import make_judge
 
 KINDS = ("supported", "other_case", "same_case", "negated")
 
 
-def build_pairs(bench: Bench, n: int, seed: int = 0) -> dict[str, list[tuple[str, str]]]:
+def build_pairs(
+    bench: Bench, n: int, seed: int = 0, split: str = "test"
+) -> dict[str, list[tuple[str, str]]]:
     rng = random.Random(seed)
     by_case: dict[str, list] = {}
     for chunk in bench.store.chunks:
         by_case.setdefault(chunk.case_id, []).append(chunk)
     pairs: dict[str, list[tuple[str, str]]] = {k: [] for k in KINDS}
-    for q in bench.queries("test"):
+    for q in bench.queries(split):
         if len(pairs["supported"]) >= n:
             break
         quote = q.gold_quotes[0]
@@ -58,49 +60,73 @@ def build_pairs(bench: Bench, n: int, seed: int = 0) -> dict[str, list[tuple[str
     return pairs
 
 
+def _rates(verdicts, threshold: float) -> dict:
+    """Acceptance by kind, accuracy and precision when accepting at ``threshold``."""
+    accepted = {k: sum(j.score >= threshold for j in v) for k, v in verdicts.items()}
+    n = {k: len(v) for k, v in verdicts.items()}
+    negatives = [k for k in KINDS if k != "supported"]
+    false_accepts = sum(accepted[k] for k in negatives)
+    total_neg = sum(n[k] for k in negatives)
+    rows = {}
+    for kind in KINDS:
+        p, lo, hi = wilson(accepted[kind], n[kind])
+        rows[kind] = {
+            "n": n[kind],
+            "accepted": round(p, 4),
+            "ci_low": round(lo, 4),
+            "ci_high": round(hi, 4),
+        }
+    return {
+        "threshold": round(threshold, 4),
+        "accept_rate": rows,
+        "recall_on_supported": rows["supported"]["accepted"],
+        "precision_of_supported_label": round(
+            accepted["supported"] / max(1, accepted["supported"] + false_accepts), 4
+        ),
+        "accuracy": round(
+            (accepted["supported"] + total_neg - false_accepts) / (n["supported"] + total_neg), 4
+        ),
+    }
+
+
+def _calibrate(verdicts) -> float:
+    """Threshold with the best accuracy on the given pairs."""
+    scores = sorted({round(j.score, 3) for v in verdicts.values() for j in v})
+    return max(scores, key=lambda t: (_rates(verdicts, t)["accuracy"], -abs(t - 0.5)))
+
+
 def run(n: int = 300, judges: str | list[str] = "lexical", seed: int = 0):
+    """Validate judges on test pairs, at the default threshold and at a threshold
+    calibrated on pairs built from development queries."""
     bench = Bench.load()
-    pairs = build_pairs(bench, int(n), seed)
+    dev_pairs = build_pairs(bench, int(n), seed, "dev")
+    pairs = build_pairs(bench, int(n), seed, "test")
     names = [judges] if isinstance(judges, str) else list(judges)
     out = {}
     for name in names:
         judge = make_judge(name)
+        calibrated = _calibrate({k: judge.judge_many(v) for k, v in dev_pairs.items()})
         verdicts = {k: judge.judge_many(v) for k, v in pairs.items()}
-        accepted = {k: sum(j.label == SUPPORTED for j in v) for k, v in verdicts.items()}
-        rows = {}
-        for kind in KINDS:
-            p, lo, hi = wilson(accepted[kind], len(pairs[kind]))
-            rows[kind] = {
-                "n": len(pairs[kind]),
-                "accepted": round(p, 4),
-                "ci_low": round(lo, 4),
-                "ci_high": round(hi, 4),
-            }
         pos = [j.score for j in verdicts["supported"]]
-        negatives = [k for k in KINDS if k != "supported"]
-        total_neg = sum(len(pairs[k]) for k in negatives)
-        false_accepts = sum(accepted[k] for k in negatives)
-        true_accepts = accepted["supported"]
         out[judge.name] = {
-            "threshold": judge.threshold,
-            "accept_rate": rows,
-            "recall_on_supported": rows["supported"]["accepted"],
-            "precision_of_supported_label": round(
-                true_accepts / max(1, true_accepts + false_accepts), 4
-            ),
-            "accuracy": round(
-                (true_accepts + total_neg - false_accepts) / (len(pos) + total_neg), 4
-            ),
+            **_rates(verdicts, judge.threshold),
+            "calibrated_on_dev": _rates(verdicts, calibrated),
             "auroc": {
                 k: round(
                     auroc(pos + [j.score for j in verdicts[k]], [1] * len(pos) + [0] * len(pos)), 4
                 )
-                for k in negatives
+                for k in KINDS
+                if k != "supported"
             },
         }
         del judge
     result = run_record(
-        {"experiment": "judge_validation", "n_per_kind": len(pairs["supported"]), "seed": seed},
+        {
+            "experiment": "judge_validation",
+            "n_per_kind": len(pairs["supported"]),
+            "n_per_kind_dev": len(dev_pairs["supported"]),
+            "seed": seed,
+        },
         bench.store.corpus_version,
         judges=out,
     )

@@ -1,0 +1,242 @@
+{
+  "created": "2026-10-10T13:34:18+0200",
+  "config": {
+    "experiment": "error_analysis",
+    "retriever": "bm25",
+    "n": 2000,
+    "bm25": {
+      "k1": 1.6,
+      "b": 0.75
+    }
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "72d0d11d3287dc5f0ce7921a7422f4bcdd7df8e9",
+    "dirty_paths": [
+      "EADME.md",
+      "scripts/make_results_tables.py",
+      "src/legalrag/experiments/rerank.py",
+      "results/rerank/",
+      "results/verification/judge_validation_lexical+nli-xsmall+nli-base.json"
+    ]
+  },
+  "versions": {
+    "python": "3.12.2",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "device": "mps"
+  },
+  "outcomes": {
+    "passage_top10": {
+      "n": 253,
+      "share": 0.1265
+    },
+    "case_top10": {
+      "n": 358,
+      "share": 0.179
+    },
+    "case_11_100": {
+      "n": 777,
+      "share": 0.3885
+    },
+    "case_beyond_100": {
+      "n": 373,
+      "share": 0.1865
+    },
+    "not_retrieved": {
+      "n": 239,
+      "share": 0.1195
+    }
+  },
+  "recall_at_10_by": {
+    "gold_court_level": {
+      "appeals": {
+        "n": 771,
+        "recall@10": 0.2879,
+        "ci_low": 0.2568,
+        "ci_high": 0.3191
+      },
+      "district": {
+        "n": 3,
+        "recall@10": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0
+      },
+      "other": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ci_low": 1.0,
+        "ci_high": 1.0
+      },
+      "scotus": {
+        "n": 1225,
+        "recall@10": 0.3167,
+        "ci_low": 0.2906,
+        "ci_high": 0.3429
+      }
+    },
+    "citing_court_level": {
+      "appeals": {
+        "n": 747,
+        "recall@10": 0.3427,
+        "ci_low": 0.3092,
+        "ci_high": 0.3775
+      },
+      "district": {
+        "n": 1107,
+        "recall@10": 0.28,
+        "ci_low": 0.2538,
+        "ci_high": 0.3072
+      },
+      "other": {
+        "n": 141,
+        "recall@10": 0.305,
+        "ci_low": 0.227,
+        "ci_high": 0.383
+      },
+      "scotus": {
+        "n": 5,
+        "recall@10": 0.4,
+        "ci_low": 0.0,
+        "ci_high": 0.8
+      }
+    },
+    "gold_opinion_words": {
+      "<3k": {
+        "n": 221,
+        "recall@10": 0.2489,
+        "ci_low": 0.1946,
+        "ci_high": 0.3077
+      },
+      "3k-7k": {
+        "n": 724,
+        "recall@10": 0.308,
+        "ci_low": 0.2749,
+        "ci_high": 0.3412
+      },
+      "7k-15k": {
+        "n": 810,
+        "recall@10": 0.3099,
+        "ci_low": 0.2802,
+        "ci_high": 0.342
+      },
+      ">=15k": {
+        "n": 245,
+        "recall@10": 0.3347,
+        "ci_low": 0.2776,
+        "ci_high": 0.3918
+      }
+    },
+    "gold_opinion_chunks": {
+      "<20": {
+        "n": 274,
+        "recall@10": 0.2555,
+        "ci_low": 0.2044,
+        "ci_high": 0.3066
+      },
+      "20-49": {
+        "n": 869,
+        "recall@10": 0.3142,
+        "ci_low": 0.2819,
+        "ci_high": 0.3475
+      },
+      "50-99": {
+        "n": 695,
+        "recall@10": 0.3122,
+        "ci_low": 0.2791,
+        "ci_high": 0.3468
+      },
+      ">=100": {
+        "n": 162,
+        "recall@10": 0.3148,
+        "ci_low": 0.2468,
+        "ci_high": 0.3889
+      }
+    },
+    "query_words": {
+      "<50": {
+        "n": 591,
+        "recall@10": 0.3621,
+        "ci_low": 0.3249,
+        "ci_high": 0.401
+      },
+      "50-89": {
+        "n": 402,
+        "recall@10": 0.3358,
+        "ci_low": 0.2886,
+        "ci_high": 0.3831
+      },
+      "90-119": {
+        "n": 190,
+        "recall@10": 0.2684,
+        "ci_low": 0.2053,
+        "ci_high": 0.3368
+      },
+      "120": {
+        "n": 817,
+        "recall@10": 0.2583,
+        "ci_low": 0.2264,
+        "ci_high": 0.2889
+      }
+    },
+    "query_quote_term_overlap": {
+      "<0.1": {
+        "n": 672,
+        "recall@10": 0.2515,
+        "ci_low": 0.2202,
+        "ci_high": 0.2857
+      },
+      "0.1-0.3": {
+        "n": 869,
+        "recall@10": 0.298,
+        "ci_low": 0.2681,
+        "ci_high": 0.3303
+      },
+      "0.3-0.5": {
+        "n": 280,
+        "recall@10": 0.3536,
+        "ci_low": 0.3,
+        "ci_high": 0.4071
+      },
+      ">=0.5": {
+        "n": 179,
+        "recall@10": 0.4693,
+        "ci_low": 0.4022,
+        "ci_high": 0.5419
+      }
+    },
+    "years_between_case_and_query": {
+      "<5": {
+        "n": 148,
+        "recall@10": 0.3378,
+        "ci_low": 0.2635,
+        "ci_high": 0.4189
+      },
+      "5-14": {
+        "n": 648,
+        "recall@10": 0.3302,
+        "ci_low": 0.2947,
+        "ci_high": 0.3673
+      },
+      "15-29": {
+        "n": 762,
+        "recall@10": 0.3176,
+        "ci_low": 0.2822,
+        "ci_high": 0.3504
+      },
+      ">=30": {
+        "n": 442,
+        "recall@10": 0.2376,
+        "ci_low": 0.199,
+        "ci_high": 0.2783
+      }
+    }
+  }
+}

@@ -140,7 +140,10 @@ def rerank() -> str:
         out.append(table(["System", "Recall@10", "MRR@10", "nDCG@10", "Passage hit@10",
                           "Added latency per query"], rows))  # fmt: skip
         out.append(
-            f"Device: {cfg['device']}. Depth chosen on {cfg['n_dev']} development queries from "
+            f"Device: {cfg['device']}. "
+            + (f"First stage alone on the development queries: nDCG@10 "
+               f"{r['dev_first_stage_ndcg10']:.3f}. " if "dev_first_stage_ndcg10" in r else "")
+            + f"Depth chosen on {cfg['n_dev']} development queries from "
             + ", ".join(f"{k}: nDCG@10 {v['ndcg@10']:.3f}" for k, v in r["dev_grid"].items())
             + f". Share of queries whose case is within the reranked passages: "
             f"{r['case_recall_ceiling_in_reranked_chunks']:.3f}."
@@ -305,14 +308,26 @@ def verification() -> str:
         r = json.loads(max(judge_files, key=lambda f: len(f.name)).read_text())
         rows = []
         for name, j in r["judges"].items():
-            a = j["accept_rate"]
-            rows.append([name, ci({"value": a["supported"]["accepted"], **a["supported"]}, 2),
-                         f"{a['other_case']['accepted']:.2f}", f"{a['same_case']['accepted']:.2f}",
-                         f"{a['negated']['accepted']:.2f}", f"{j['accuracy']:.2f}"])  # fmt: skip
-        out.append(f"**Support judges** ({r['config']['n_per_kind']} pairs of each kind). "
-                   "A good judge accepts the first column and rejects the other three.")  # fmt: skip
-        out.append(table(["Judge", "Accepts true quotation", "Accepts: other case",
-                          "Accepts: same case, wrong passage", "Accepts: negated", "Accuracy"], rows))  # fmt: skip
+            variants = [("default", j)]
+            if "calibrated_on_dev" in j:
+                variants.append(("tuned on development pairs", j["calibrated_on_dev"]))
+            for label, v in variants:
+                a = v["accept_rate"]
+                rows.append([
+                    name, f"{v['threshold']:.2f} ({label})",
+                    ci({"value": a["supported"]["accepted"], **a["supported"]}, 2),
+                    f"{a['other_case']['accepted']:.2f}", f"{a['same_case']['accepted']:.2f}",
+                    f"{a['negated']['accepted']:.2f}", f"{v['accuracy']:.2f}",
+                    f"{v['precision_of_supported_label']:.2f}",
+                ])  # fmt: skip
+        out.append(
+            f"**Support judges** ({r['config']['n_per_kind']} test pairs of each kind). A good "
+            "judge accepts a true quotation and rejects the other three."
+        )
+        out.append(table(
+            ["Judge", "Threshold", "Accepts true quotation", "Accepts: other case",
+             "Accepts: same case, wrong passage", "Accepts: negated", "Accuracy",
+             "Precision of 'supported'"], rows))  # fmt: skip
     else:
         out.append(pending("judge validation", "legalrag experiment judge", "It has not been run on this corpus version."))
     check_files = (

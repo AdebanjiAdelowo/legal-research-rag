@@ -49,3 +49,60 @@ def test_evaluate_and_compare(tmp_path):
     worse = {k: [0.0] * len(v) for k, v in per_query.items()}
     cmp = adjust({"a vs b": compare(per_query, worse, "recall@1")})
     assert cmp["a vs b"]["diff"] == 1.0 and "p_holm" in cmp["a vs b"]
+
+
+def test_negation_and_planted_corruptions(tmp_path):
+    import random
+
+    from legalrag.experiments import citations as C
+    from legalrag.rag.evidence import select_evidence
+    from legalrag.rag.generate import ExtractiveGenerator
+    from legalrag.retrieval.core import top_k
+    from legalrag.verify.verifier import CitationIndex, CitationVerifier
+
+    assert C.negate("The sequence is mandatory.") == "The sequence is not mandatory."
+    assert C.negate("Courts decide.") is None
+
+    bench = make_bench(tmp_path)
+    q = demo.queries()[4]
+    ranking = top_k(bench.bm25.score(q.text), 20, bench.store.mask(before=q.date))
+    evidence = select_evidence(ranking, bench.store, k=5, per_case=2)
+    _, statements, _ = ExtractiveGenerator().generate(q.text, evidence)
+    clean = next(s for s in statements if s.citations)
+    verifier = CitationVerifier(CitationIndex(bench.store.cases))
+    assert verifier.check_statements([clean], evidence)[0].status == "verified"
+    rng = random.Random(0)
+    for kind in C.LOOKUP:
+        bad = C.corrupt(kind, clean, evidence, bench, rng)
+        if bad is None:
+            continue
+        check = verifier.check_statements([bad], evidence)[0]
+        assert C._detected(kind, check), kind
+        assert check.status != "verified", kind
+
+
+def test_judge_pairs_and_calibration():
+    from legalrag.experiments import judge as J
+    from legalrag.verify.judges import Judgment
+
+    verdicts = {
+        "supported": [Judgment("", 0.9), Judgment("", 0.8), Judgment("", 0.4)],
+        "other_case": [Judgment("", 0.1), Judgment("", 0.2), Judgment("", 0.3)],
+        "same_case": [Judgment("", 0.1), Judgment("", 0.35), Judgment("", 0.2)],
+        "negated": [Judgment("", 0.6), Judgment("", 0.2), Judgment("", 0.1)],
+    }
+    at_half = J._rates(verdicts, 0.5)
+    assert at_half["recall_on_supported"] == round(2 / 3, 4)
+    assert at_half["accept_rate"]["negated"]["accepted"] == round(1 / 3, 4)
+    assert at_half["accuracy"] == round(10 / 12, 4)
+    t = J._calibrate(verdicts)
+    assert J._rates(verdicts, t)["accuracy"] >= at_half["accuracy"]
+
+
+def test_error_analysis_buckets():
+    from legalrag.experiments.analysis import _bucket, _table
+
+    labels = ["<3k", "3k-7k", "7k-15k", ">=15k"]
+    assert [_bucket(v, [3000, 7000, 15000], labels) for v in (10, 3000, 14999, 20000)] == labels
+    out = _table({"a": [1.0, 0.0, 1.0, 1.0], "b": []})
+    assert out["a"]["n"] == 4 and out["a"]["recall@10"] == 0.75 and "b" not in out

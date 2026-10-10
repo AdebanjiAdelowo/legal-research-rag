@@ -1,0 +1,144 @@
+{
+  "created": "2026-10-10T13:34:09+0200",
+  "config": {
+    "experiment": "judge_validation",
+    "n_per_kind": 300,
+    "seed": 0
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "72d0d11d3287dc5f0ce7921a7422f4bcdd7df8e9",
+    "dirty_paths": [
+      "EADME.md",
+      "scripts/make_results_tables.py",
+      "src/legalrag/experiments/rerank.py",
+      "results/rerank/"
+    ]
+  },
+  "versions": {
+    "python": "3.12.2",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "device": "mps"
+  },
+  "judges": {
+    "lexical-containment": {
+      "threshold": 0.6,
+      "accept_rate": {
+        "supported": {
+          "n": 300,
+          "accepted": 0.9867,
+          "ci_low": 0.9662,
+          "ci_high": 0.9948
+        },
+        "other_case": {
+          "n": 300,
+          "accepted": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126
+        },
+        "same_case": {
+          "n": 300,
+          "accepted": 0.04,
+          "ci_low": 0.023,
+          "ci_high": 0.0686
+        },
+        "negated": {
+          "n": 300,
+          "accepted": 0.9867,
+          "ci_low": 0.9662,
+          "ci_high": 0.9948
+        }
+      },
+      "recall_on_supported": 0.9867,
+      "precision_of_supported_label": 0.4901,
+      "accuracy": 0.74,
+      "auroc": {
+        "other_case": 0.9996,
+        "same_case": 0.9954,
+        "negated": 0.5
+      }
+    },
+    "nli:cross-encoder/nli-deberta-v3-xsmall": {
+      "threshold": 0.5,
+      "accept_rate": {
+        "supported": {
+          "n": 300,
+          "accepted": 0.6867,
+          "ci_low": 0.6321,
+          "ci_high": 0.7365
+        },
+        "other_case": {
+          "n": 300,
+          "accepted": 0.0133,
+          "ci_low": 0.0052,
+          "ci_high": 0.0338
+        },
+        "same_case": {
+          "n": 300,
+          "accepted": 0.0367,
+          "ci_low": 0.0206,
+          "ci_high": 0.0645
+        },
+        "negated": {
+          "n": 300,
+          "accepted": 0.15,
+          "ci_low": 0.114,
+          "ci_high": 0.1948
+        }
+      },
+      "recall_on_supported": 0.6867,
+      "precision_of_supported_label": 0.7744,
+      "accuracy": 0.8717,
+      "auroc": {
+        "other_case": 0.9376,
+        "same_case": 0.9141,
+        "negated": 0.8527
+      }
+    },
+    "nli:MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli": {
+      "threshold": 0.5,
+      "accept_rate": {
+        "supported": {
+          "n": 300,
+          "accepted": 0.9033,
+          "ci_low": 0.8646,
+          "ci_high": 0.9318
+        },
+        "other_case": {
+          "n": 300,
+          "accepted": 0.2133,
+          "ci_low": 0.1708,
+          "ci_high": 0.2632
+        },
+        "same_case": {
+          "n": 300,
+          "accepted": 0.3033,
+          "ci_low": 0.2541,
+          "ci_high": 0.3576
+        },
+        "negated": {
+          "n": 300,
+          "accepted": 0.3067,
+          "ci_low": 0.2572,
+          "ci_high": 0.361
+        }
+      },
+      "recall_on_supported": 0.9033,
+      "precision_of_supported_label": 0.5232,
+      "accuracy": 0.77,
+      "auroc": {
+        "other_case": 0.932,
+        "same_case": 0.8796,
+        "negated": 0.8914
+      }
+    }
+  }
+}
