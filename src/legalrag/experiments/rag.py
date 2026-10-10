@@ -126,9 +126,7 @@ def _aggregate(rows: list[dict]) -> dict:
     }
     if not answered:
         return out
-    supported = [
-        {**r, "unsupported": r["citable"] - r["supported_statements"]} for r in answered
-    ]
+    supported = [{**r, "unsupported": r["citable"] - r["supported_statements"]} for r in answered]
     out.update(
         {
             "statements_per_answer": _mean(answered, "statements"),
@@ -201,8 +199,13 @@ def run(
                 ]
                 nothing = not any(s.type in T.CITABLE for s in keep)
                 rows_filtered.append(
-                    _score(keep, evidence, evaluator.check_statements(keep, evidence), q,
-                           abstained or nothing)  # fmt: skip
+                    _score(
+                        keep,
+                        evidence,
+                        evaluator.check_statements(keep, evidence),
+                        q,
+                        abstained or nothing,
+                    )
                 )
             dump.append(
                 {
@@ -211,10 +214,14 @@ def run(
                     "abstained": abstained,
                     "raw_output": raw,
                     "statements": [
-                        {"type": s.type, "text": s.text, "citations": s.citations,
-                         "status": c.status}
+                        {
+                            "type": s.type,
+                            "text": s.text,
+                            "citations": s.citations,
+                            "status": c.status,
+                        }
                         for s, c in zip(statements, checks, strict=True)
-                    ],  # fmt: skip
+                    ],
                     "evidence": [e.chunk_id for e in evidence],
                 }
             )
