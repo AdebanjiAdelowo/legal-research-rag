@@ -1,0 +1,19 @@
+# Data and indexes are rebuilt from pinned sources; LePaRD (CC BY-NC-SA) and any
+# text derived from it must not be committed.
+data/raw/
+data/processed/
+data/indexes/
+results/**/per_query*.jsonl
+results/**/answers*.jsonl
+results/**/cache/
+!data/README.md
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+.DS_Store
+*.egg-info/
+dist/
+build/
