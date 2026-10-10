@@ -216,8 +216,9 @@ Error patterns are analysed in [docs/error_analysis.md](docs/error_analysis.md).
 Python 3.11 or later. With [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv sync --extra app --extra dev          # BM25 pipeline, API, interface, tests
+uv sync --extra app --extra dev              # BM25 pipeline, API, interface, tests
 uv sync --extra app --extra dev --extra ml   # adds dense encoders, rerankers, NLI judges
+uv sync --extra api                          # the HTTP API alone, as in the container image
 ```
 
 The core package needs NumPy, SciPy, Pydantic, PyYAML and httpx. The `ml` extra adds
@@ -289,8 +290,8 @@ docker build -t legal-research-rag .
 docker run -p 8000:8000 legal-research-rag
 ```
 
-The image serves the API on the synthetic corpus and contains no dataset and no model
-weights.
+The image (about 590 MB) serves the API on the synthetic corpus as a non-root user
+and contains no dataset and no model weights.
 
 ## Reproducing the experiments
 

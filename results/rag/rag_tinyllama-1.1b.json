@@ -1,0 +1,240 @@
+{
+  "created": "2026-10-10T18:37:40+0200",
+  "config": {
+    "experiment": "rag",
+    "generator": "llm:TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "retriever": "bm25",
+    "bm25": {
+      "k1": 1.6,
+      "b": 0.75
+    },
+    "evidence_k": 3,
+    "eval_judge": "nli:cross-encoder/nli-deberta-v3-xsmall",
+    "filter_judge": "lexical-containment",
+    "n_queries": 100
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "94ce70e7d220f7d03f7e77ec75cd95cc45062763",
+    "dirty_paths": [
+      "ockerfile",
+      "README.md",
+      "pyproject.toml",
+      "results/verification/citation_checker_lexical.json",
+      "uv.lock",
+      "docs/STATUS.md"
+    ]
+  },
+  "versions": {
+    "python": "3.12.2",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "device": "mps"
+  },
+  "conditions": {
+    "normal": {
+      "verification_off": {
+        "answers": 100,
+        "abstained": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        },
+        "gold_in_evidence": {
+          "value": 0.1,
+          "ci_low": 0.0552,
+          "ci_high": 0.1744,
+          "n": 100
+        },
+        "gold_passage_in_evidence": {
+          "value": 0.04,
+          "ci_low": 0.0157,
+          "ci_high": 0.0984,
+          "n": 100
+        },
+        "statements_per_answer": {
+          "value": 5.46,
+          "ci_low": 4.87,
+          "ci_high": 6.13,
+          "n": 100
+        },
+        "citation_precision": {
+          "value": null,
+          "n": 0
+        },
+        "citation_recall": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "n": 4
+        },
+        "unsupported_claim_rate": {
+          "value": 1.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "n": 4
+        },
+        "hallucinated_citation_rate": {
+          "value": 0.31,
+          "ci_low": 0.2278,
+          "ci_high": 0.4063,
+          "n": 100
+        },
+        "gold_case_cited": {
+          "value": 0.09,
+          "ci_low": 0.0481,
+          "ci_high": 0.1623,
+          "n": 100
+        },
+        "gold_passage_cited": {
+          "value": 0.03,
+          "ci_low": 0.0103,
+          "ci_high": 0.0845,
+          "n": 100
+        },
+        "gold_passage_cited_and_supported": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        },
+        "gold_quote_coverage": {
+          "value": 0.001,
+          "ci_low": 0.0,
+          "ci_high": 0.003,
+          "n": 100
+        }
+      },
+      "verification_strict": {
+        "answers": 100,
+        "abstained": {
+          "value": 1.0,
+          "ci_low": 0.963,
+          "ci_high": 1.0,
+          "n": 100
+        },
+        "gold_in_evidence": {
+          "value": 0.1,
+          "ci_low": 0.0552,
+          "ci_high": 0.1744,
+          "n": 100
+        },
+        "gold_passage_in_evidence": {
+          "value": 0.04,
+          "ci_low": 0.0157,
+          "ci_high": 0.0984,
+          "n": 100
+        }
+      }
+    },
+    "withheld": {
+      "verification_off": {
+        "answers": 100,
+        "abstained": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        },
+        "gold_in_evidence": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        },
+        "gold_passage_in_evidence": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        },
+        "statements_per_answer": {
+          "value": 5.38,
+          "ci_low": 4.7897,
+          "ci_high": 6.0402,
+          "n": 100
+        },
+        "citation_precision": {
+          "value": null,
+          "n": 0
+        },
+        "citation_recall": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "n": 4
+        },
+        "unsupported_claim_rate": {
+          "value": 1.0,
+          "ci_low": 1.0,
+          "ci_high": 1.0,
+          "n": 4
+        },
+        "hallucinated_citation_rate": {
+          "value": 0.31,
+          "ci_low": 0.2278,
+          "ci_high": 0.4063,
+          "n": 100
+        },
+        "gold_case_cited": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        },
+        "gold_passage_cited": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        },
+        "gold_passage_cited_and_supported": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        },
+        "gold_quote_coverage": {
+          "value": 0.001,
+          "ci_low": 0.0,
+          "ci_high": 0.003,
+          "n": 100
+        }
+      },
+      "verification_strict": {
+        "answers": 100,
+        "abstained": {
+          "value": 1.0,
+          "ci_low": 0.963,
+          "ci_high": 1.0,
+          "n": 100
+        },
+        "gold_in_evidence": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        },
+        "gold_passage_in_evidence": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.037,
+          "n": 100
+        }
+      }
+    }
+  },
+  "generation_seconds": {
+    "mean": 8.5398,
+    "p50": 9.0165,
+    "p95": 10.0435
+  }
+}

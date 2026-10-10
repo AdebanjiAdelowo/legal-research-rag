@@ -1,5 +1,5 @@
 {
-  "created": "2026-10-10T12:43:04+0200",
+  "created": "2026-10-10T18:08:53+0200",
   "config": {
     "experiment": "citation_checker",
     "judge": "lexical-containment",
@@ -9,10 +9,8 @@
   },
   "corpus_version": "c1b900e309df",
   "git": {
-    "commit": "0134d02664df14e9d5758118008376e804dbdc46",
-    "dirty_paths": [
-      "results/abstention/"
-    ]
+    "commit": "94ce70e7d220f7d03f7e77ec75cd95cc45062763",
+    "dirty_paths": []
   },
   "versions": {
     "python": "3.12.2",
@@ -28,62 +26,62 @@
     "device": "mps"
   },
   "false_alarm_on_clean_statements": {
-    "n": 1441,
-    "rate": 0.0389,
-    "ci_low": 0.03,
-    "ci_high": 0.0501
+    "n": 1447,
+    "rate": 0.0,
+    "ci_low": 0.0,
+    "ci_high": 0.0026
   },
   "detection": {
     "exact_lookup_checks": {
       "fabricated_citation": {
-        "n": 1441,
+        "n": 1447,
         "rate": 1.0,
-        "ci_low": 0.9973,
+        "ci_low": 0.9974,
         "ci_high": 1.0
       },
       "real_but_unretrieved": {
-        "n": 1441,
-        "rate": 1.0,
-        "ci_low": 0.9973,
-        "ci_high": 1.0
+        "n": 1447,
+        "rate": 0.9993,
+        "ci_low": 0.9961,
+        "ci_high": 0.9999
       },
       "wrong_name": {
-        "n": 1441,
+        "n": 1447,
         "rate": 1.0,
-        "ci_low": 0.9973,
+        "ci_low": 0.9974,
         "ci_high": 1.0
       },
       "marker_out_of_range": {
-        "n": 1441,
+        "n": 1447,
         "rate": 1.0,
-        "ci_low": 0.9973,
+        "ci_low": 0.9974,
         "ci_high": 1.0
       },
       "altered_quotation": {
-        "n": 1427,
-        "rate": 0.9418,
-        "ci_low": 0.9285,
-        "ci_high": 0.9528
+        "n": 1432,
+        "rate": 0.9406,
+        "ci_low": 0.9272,
+        "ci_high": 0.9517
       }
     },
     "support_judge_checks": {
       "swapped_marker": {
-        "n": 1441,
-        "rate": 0.7647,
-        "ci_low": 0.7422,
-        "ci_high": 0.7859
+        "n": 1447,
+        "rate": 0.7471,
+        "ci_low": 0.724,
+        "ci_high": 0.7688
       },
       "swapped_claim": {
-        "n": 1441,
+        "n": 1447,
         "rate": 1.0,
-        "ci_low": 0.9973,
+        "ci_low": 0.9974,
         "ci_high": 1.0
       },
       "negated": {
-        "n": 976,
-        "rate": 0.0502,
-        "ci_low": 0.0382,
-        "ci_high": 0.0658
+        "n": 965,
+        "rate": 0.0207,
+        "ci_low": 0.0135,
+        "ci_high": 0.0318
       }
     }
   }

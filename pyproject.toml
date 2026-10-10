@@ -22,6 +22,9 @@ dependencies = [
 # Dense encoders, cross-encoders, the entailment judge and local generation.
 # The unit tests and the BM25 pipeline do not need these.
 ml = ["torch>=2.2", "sentence-transformers>=3.0", "transformers>=4.44"]
+# The HTTP API alone; the container image installs only this.
+api = ["fastapi>=0.110", "uvicorn>=0.29"]
+# API plus the Streamlit interface.
 app = ["fastapi>=0.110", "uvicorn>=0.29", "streamlit>=1.33"]
 dev = ["pytest>=8", "ruff>=0.5"]
 
