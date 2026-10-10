@@ -217,5 +217,6 @@ def interpret(question: str) -> QueryPlan:
         lead = re.search(r"(?:\b(?:in|of|by|from|within|on|for)\s+)?(?:the\s+)?$", text[:start])
         text = text[: lead.start() if lead else start] + " " + text[end:]
     text = re.sub(r"\s*[,;]\s*(?=[?.!])", "", text)
+    text = re.sub(r"\s+(?=[?.!](?:\s|$))", "", text)
     plan.text = re.sub(r"\s{2,}", " ", text).strip(" ,;") or question
     return plan

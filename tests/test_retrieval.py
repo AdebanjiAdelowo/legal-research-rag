@@ -111,6 +111,7 @@ def test_constraint_phrases_leave_the_retrieval_text():
     plan = interpret("What is the preliminary injunction test in the Ninth Circuit before 2008?")
     assert "Ninth" not in plan.text and "2008" not in plan.text
     assert "preliminary injunction test" in plan.text and plan.notes
+    assert plan.text.endswith("test?") and " ?" not in plan.text
 
 
 def test_two_circuits_named_together():
