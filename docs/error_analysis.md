@@ -136,7 +136,7 @@ by the GPU script.
 
 `results/retrieval/retrieval_section220.json`
 
-`bge-small-en-v1.5` alone scored below BM25 (nDCG@10 0.153 against 0.176, adjusted
+`bge-small-en-v1.5` alone scored below BM25 (nDCG@10 0.152 against 0.176, adjusted
 p < 0.001). Fusing the two by normalised score raised nDCG@10 to 0.186 (+0.010 over
 BM25, adjusted p = 0.002). Reciprocal rank fusion was not distinguishable from BM25
 (+0.005, p = 0.26).
@@ -155,7 +155,7 @@ general encoder does not bridge the gap either.
 
 Leaving citations and case names in the query was expected to inflate scores. It
 lowered BM25's nDCG@10 from 0.176 to 0.158 (p < 0.001) and left the dense encoder
-unchanged (0.153 against 0.154, p = 0.57).
+unchanged (0.152 against 0.154, p = 0.57).
 
 The explanation is in what is indexed. Head matter is excluded, so an opinion's own
 name and citation are not in its passages, and a citation string in the query cannot
@@ -268,15 +268,109 @@ entails an answer to the question, not how similar it is. That is an open proble
 
 `results/verification/`
 
-<!-- verification:start -->
-<!-- verification:end -->
+**The exact checks work.** On planted errors in otherwise correct statements, the
+lookup-based checks caught every fabricated citation, every citation carried under the
+wrong case name and every out-of-range passage label (1,447 of each with the lexical
+judge), and all but one of the real citations to cases that had not been retrieved.
+The one miss was a randomly chosen case that the cited passage happened to cite
+itself, which is correctly not an error. Altered quotations were caught 94% of the
+time; the misses are quotations in which the random word replacements left most
+three-word sequences intact.
+
+**The support check depends entirely on the judge, and the two judges fail in opposite
+directions.**
+
+| | Lexical judge | Entailment judge (`nli-deberta-v3-xsmall`) |
+|---|---|---|
+| Flags a clean verbatim statement | 0.0% of 1,447 | 20.9% of 733 |
+| Detects a statement attributed to another passage in the evidence | 74.7% | 86.9% |
+| Detects a sentence from an unrelated case under a real citation | 100% | 99.5% |
+| Detects an inserted "not" | 2.1% | 94.2% |
+
+The lexical judge accepts a statement whose words are in the passage. It cannot see
+that "is not mandatory" and "is mandatory" differ, so a claim that reverses a holding
+while reusing its vocabulary passes. That is the most dangerous error a legal summary
+can make, and the cheapest judge is blind to it.
+
+The entailment judge catches the reversal and pays for it by rejecting a fifth of
+statements that are copied word for word from the passage they cite. In the judge
+validation it accepted 69% of true quotations. Long legal sentences with nested
+clauses, citations and OCR noise are far from the short premise and hypothesis pairs
+these models are trained on.
+
+**A larger entailment model was not better.** `DeBERTa-v3-base-mnli-fever-anli` at its
+default threshold accepted 90% of true quotations but also 21% of passages from
+unrelated cases and 30% of other passages from the same opinion. With a threshold
+tuned on development pairs (0.95) its accuracy reached 0.86, level with the small
+model's 0.87 at its default. Neither is close to reliable.
+
+**What this means for the reported figures.** A citation marked "supported" by the
+entailment judge is supported about three times in four (precision 0.77 in
+validation). A citation marked "not confirmed" is frequently fine. The interface and
+the reports therefore show the check as an automatic indication with the judge named,
+never as a verdict.
+
+**One defect was found and fixed through this experiment.** Verbatim sentences often
+contain the opinion's own citations to other cases. The verifier first treated those
+as citations the generator had introduced, flagging 3.9% of clean statements and
+reporting a hallucinated citation in 14% of extractive answers. A citation that
+appears in the cited passage itself is now recorded as relayed from the evidence. The
+figures above are from after the fix.
+
+A natural next step is to combine the judges: accept on lexical containment unless the
+entailment model reports a contradiction. That would need its own validation on pairs
+it was not designed on, and was not done.
 
 ## 11. Generation
 
 `results/rag/`
 
-<!-- generation:start -->
-<!-- generation:end -->
+Retrieval for these runs is BM25; support is judged by the small entailment model.
+
+**Generation is bounded by retrieval.** With five evidence passages, capped at two per
+case, the case the court quoted was among the evidence for 18.7% of 300 test queries
+and the quoted paragraph for 9.0%. No generator can cite what it was not given. An
+answer that cites the quoted passage and is judged supported occurred for 7.3% of
+queries.
+
+**The extractive generator never abstains.** It answered all 300 queries in both
+conditions, including the 300 in which the quoted case had been withheld. Its
+statements are verbatim and always traceable, so no answer contained a hallucinated
+citation, but it will always find some sentence to report. Sufficiency has to be
+decided before generation, and section 9 shows the available signal is weak.
+
+**The judge, not the generator, sets the measured citation precision.** Every
+extractive statement is a sentence copied from the passage it cites, so its true
+citation precision is 1. The entailment judge confirmed 80.0%. The other 20% are the
+judge's false rejections, consistent with its 31% rejection of true quotations in the
+validation set. Citation precision and the unsupported-claim rate as reported here
+are therefore pessimistic by roughly that margin, and comparisons between generators
+are meaningful only when the gap exceeds the judge's error.
+
+**A 1.1B-parameter chat model could not do the task.** `TinyLlama-1.1B-Chat-v1.0`,
+given three passages and the tagged-line instructions, mostly echoed the passage
+headers. Of 1,084 parsed statements over 200 answers, 1,074 carried no recognised tag
+and were classed as interpretation, which the system never presents as sourced. Eight
+were tagged as fact, reasoning or provision; none was confirmed.
+
+More serious: in 31% of answers (95% interval 23% to 41%) the model wrote a reporter
+citation that was not traceable to its evidence. Inspection shows the pattern: after
+copying the real headers `[E1]` to `[E3]` it continued the list with `[E4]`, `[E5]`
+and invented cases with well-formed citations. This is the failure the verifier
+exists for. Every such citation was flagged by the existence and provenance checks,
+and under the strict policy no statement survived, so the system abstained on all 100
+queries in both conditions.
+
+This run measures the safety net, not generation quality. It shows that with a model
+this weak the pipeline degrades to abstention and not to fabricated authority. It says
+nothing about a capable model, which would produce paraphrased, plausible statements:
+the harder case for the support judge and the one the larger-model run is designed to
+measure.
+
+**One proxy was dropped.** The share of the quotation's words that appear in the
+answer was 0.49 with the quoted case available and 0.49 with it withheld. Legal prose
+shares so much common vocabulary that the measure does not discriminate, and it is not
+reported in the tables.
 
 ## Summary of negative results
 

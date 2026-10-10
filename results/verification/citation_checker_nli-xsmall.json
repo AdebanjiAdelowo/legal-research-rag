@@ -1,5 +1,5 @@
 {
-  "created": "2026-10-10T17:47:57+0200",
+  "created": "2026-10-10T19:33:45+0200",
   "config": {
     "experiment": "citation_checker",
     "judge": "nli:cross-encoder/nli-deberta-v3-xsmall",
@@ -9,10 +9,10 @@
   },
   "corpus_version": "c1b900e309df",
   "git": {
-    "commit": "55c2de017ea21d69c45cc03ee249ccf714df9e9c",
+    "commit": "38faa632f8184d4e62576d1231e857f010075dae",
     "dirty_paths": [
-      "onfigs/gpu.yaml",
-      "configs/local_neural.yaml"
+      "ocs/error_analysis.md",
+      "results/rag/rag_extractive.json"
     ]
   },
   "versions": {
@@ -30,9 +30,9 @@
   },
   "false_alarm_on_clean_statements": {
     "n": 733,
-    "rate": 0.2401,
-    "ci_low": 0.2106,
-    "ci_high": 0.2723
+    "rate": 0.2087,
+    "ci_low": 0.1809,
+    "ci_high": 0.2396
   },
   "detection": {
     "exact_lookup_checks": {
@@ -44,9 +44,9 @@
       },
       "real_but_unretrieved": {
         "n": 733,
-        "rate": 1.0,
-        "ci_low": 0.9948,
-        "ci_high": 1.0
+        "rate": 0.9986,
+        "ci_low": 0.9923,
+        "ci_high": 0.9998
       },
       "wrong_name": {
         "n": 733,
@@ -70,9 +70,9 @@
     "support_judge_checks": {
       "swapped_marker": {
         "n": 733,
-        "rate": 0.8731,
-        "ci_low": 0.8471,
-        "ci_high": 0.8953
+        "rate": 0.869,
+        "ci_low": 0.8427,
+        "ci_high": 0.8915
       },
       "swapped_claim": {
         "n": 733,

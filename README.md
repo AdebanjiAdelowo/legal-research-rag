@@ -64,6 +64,45 @@ jurisdiction are handled wrongly.
 ## Key findings
 
 <!-- findings:start -->
+From the runs reported under [Results](#results): 2,000 test queries, small models on a
+laptop. Several results go against the usual expectation and are reported as measured.
+
+1. **The task is hard, and lexical retrieval is a strong baseline.** BM25 places the
+   case the court quoted in the top 10 for 30.5% of queries and in the top 100 for
+   69.4% (nDCG@10 0.176). A small general-purpose dense encoder alone is worse (0.152).
+   Fusing the two by normalised score gives 0.186, a small but significant gain;
+   reciprocal rank fusion is not distinguishable from BM25.
+2. **A small web-trained reranker made ranking worse.** Rescoring with
+   `ms-marco-MiniLM-L6-v2` lowered nDCG@10 from 0.186 to 0.160 over the hybrid and from
+   0.176 to 0.153 over BM25.
+3. **Section-aware chunking did not improve retrieval.** Fixed windows found the
+   quoted paragraph more often, including in a control matched for passage length.
+4. **Query decomposition had no effect with BM25**, even when the query was split at
+   its true issue boundaries.
+5. **Ignoring dates distorts results badly on older queries.** For queries from 1975
+   to 1999, 52% of unfiltered top-10 results were cases decided after the query, and
+   Recall@10 fell from 0.466 to 0.335.
+6. **Jurisdiction is a strong signal.** For 94% of queries the quoted case was binding
+   on the citing court. Restricting retrieval to binding authority raised Recall@10
+   from 0.305 to 0.456, and made the remaining 6% of cases unreachable.
+7. **Citations left in the query did not leak the answer.** They lowered BM25's score,
+   because an opinion's own citation is not in its indexed text and the string matches
+   other opinions that cite the same case.
+8. **Existence checks are reliable; support checks are not yet.** Fabricated
+   citations, wrong case names and invalid passage labels were all detected. For
+   substantive support, a lexical judge detected 2% of negated claims and never flagged
+   a correct one, while an entailment judge detected 94% and flagged 21% of correct
+   ones.
+9. **Verbatim extraction never invents a citation and never abstains.** A 1.1B local
+   chat model invented citations in 31% of answers; all were caught, and under strict
+   verification the system abstained on every query.
+10. **The retrieval score cannot tell that the right case is missing.** With the quoted
+    case withheld, a threshold on the best score separates answerable from unanswerable
+    queries at chance (AUROC 0.50 for BM25, 0.51 for a cross-encoder). Questions outside
+    federal law altogether are detected well (AUROC 0.99, and 100% with the scope rule).
+
+The comparison of a legal-domain encoder with its general-purpose parent (RQ2) was not
+evaluated: it requires two 596 MB models and is set up to run on a GPU.
 <!-- findings:end -->
 
 ## Architecture
@@ -185,6 +224,278 @@ All figures below are generated from the files under `results/` by
 models.
 
 <!-- results:start -->
+### Retrieval: BM25, dense and hybrid (RQ1, RQ2)
+
+2,000 test queries over 222,520 passages; settings tuned on 800 development queries. Case-level metrics unless marked. Brackets are 95% bootstrap intervals.
+
+| System | Recall@1 | Recall@10 | Recall@100 | MRR@10 | nDCG@10 | P@10 | Passage hit@10 |
+|---|---|---|---|---|---|---|---|
+| BM25 | 0.072 [0.061, 0.084] | 0.305 [0.285, 0.326] | 0.694 [0.674, 0.715] | 0.136 [0.125, 0.149] | 0.176 [0.163, 0.190] | 0.030 [0.029, 0.033] | 0.127 [0.112, 0.142] |
+| Dense, bge-small-en-v1.5 (general) | 0.062 [0.052, 0.073] | 0.273 [0.254, 0.294] | 0.649 [0.628, 0.670] | 0.116 [0.105, 0.127] | 0.152 [0.140, 0.165] | 0.027 [0.025, 0.029] | 0.101 [0.088, 0.114] |
+| Hybrid, rank fusion: BM25 + bge-small | 0.076 [0.066, 0.088] | 0.315 [0.294, 0.337] | 0.698 [0.678, 0.717] | 0.141 [0.129, 0.154] | 0.181 [0.168, 0.196] | 0.032 [0.029, 0.034] | 0.133 [0.118, 0.150] |
+| Hybrid, score fusion: BM25 + bge-small | 0.083 [0.071, 0.096] | 0.315 [0.294, 0.336] | 0.703 [0.683, 0.723] | 0.146 [0.134, 0.160] | 0.186 [0.173, 0.200] | 0.032 [0.029, 0.034] | 0.139 [0.124, 0.155] |
+
+Tuned BM25: k1 = 1.6, b = 0.75.
+
+Paired differences in nDCG@10 unless marked (Holm-adjusted):
+
+| Comparison | Difference |
+|---|---|
+| dense-bge-small vs bm25 | -0.024 [-0.035, -0.012], p < 0.001 |
+| hybrid-rrf-bge-small vs bm25 | +0.005 [-0.003, +0.014], p = 0.255 |
+| hybrid-score-bge-small vs bm25 | +0.010 [+0.005, +0.015], p = 0.002 |
+| hybrid-score-bge-small vs hybrid-rrf-bge-small | +0.004 [-0.001, +0.010], p = 0.255 |
+
+No result is reported for legal against general encoder (RQ2). Needs two 596 MB model downloads and several hours of laptop encoding, or the Kaggle runner (`kaggle/README.md`).
+
+```bash
+legalrag index modernbert-general modernbert-legal
+legalrag experiment retrieval
+```
+
+**Leakage control.** The same queries with citations and case names left in:
+
+| System | nDCG@10 masked | nDCG@10 unmasked | Unmasked minus masked |
+|---|---|---|---|
+| BM25 | 0.176 | 0.158 | -0.018 [-0.025, -0.011], p < 0.001 |
+| Dense, bge-small-en-v1.5 (general) | 0.152 | 0.154 | +0.002 [-0.004, +0.008], p = 0.571 |
+
+### Cross-encoder reranking (RQ3)
+
+| System | Recall@10 | MRR@10 | nDCG@10 | Passage hit@10 | Added latency per query |
+|---|---|---|---|---|---|
+| First stage: BM25 | 0.305 [0.285, 0.326] | 0.136 [0.125, 0.149] | 0.176 [0.163, 0.190] | 0.127 [0.112, 0.142] | n/a |
+| + cross-encoder/ms-marco-MiniLM-L6-v2 on top 20 | 0.285 [0.266, 0.306] | 0.113 [0.101, 0.123] | 0.153 [0.141, 0.165] | 0.106 [0.092, 0.120] | 102 ms |
+
+Device: mps. Depth chosen on 300 development queries from 20: nDCG@10 0.188, 50: nDCG@10 0.184, 100: nDCG@10 0.168. Share of queries whose case is within the reranked passages: 0.356.
+
+| Comparison | Difference |
+|---|---|
+| reranked vs first stage [ndcg@10] | -0.024 [-0.032, -0.015], p < 0.001 |
+| reranked vs first stage [recall@10] | -0.020 [-0.032, -0.009], p = 0.002 |
+| reranked vs first stage [mrr@10] | -0.024 [-0.033, -0.015], p < 0.001 |
+| reranked vs first stage [passage_hit@10] | -0.021 [-0.032, -0.010], p < 0.001 |
+
+| System | Recall@10 | MRR@10 | nDCG@10 | Passage hit@10 | Added latency per query |
+|---|---|---|---|---|---|
+| First stage: Hybrid, score fusion: BM25 + bge-small | 0.315 [0.294, 0.336] | 0.146 [0.134, 0.160] | 0.186 [0.173, 0.200] | 0.139 [0.124, 0.155] | n/a |
+| + cross-encoder/ms-marco-MiniLM-L6-v2 on top 20 | 0.300 [0.280, 0.321] | 0.117 [0.106, 0.128] | 0.160 [0.147, 0.172] | 0.114 [0.099, 0.128] | 103 ms |
+
+Device: mps. Depth chosen on 300 development queries from 20: nDCG@10 0.188, 50: nDCG@10 0.184, 100: nDCG@10 0.176. Share of queries whose case is within the reranked passages: 0.369.
+
+| Comparison | Difference |
+|---|---|
+| reranked vs first stage [ndcg@10] | -0.026 [-0.035, -0.017], p < 0.001 |
+| reranked vs first stage [recall@10] | -0.015 [-0.028, -0.002], p = 0.025 |
+| reranked vs first stage [mrr@10] | -0.029 [-0.039, -0.019], p < 0.001 |
+| reranked vs first stage [passage_hit@10] | -0.025 [-0.037, -0.014], p < 0.001 |
+
+### Fixed-size against section-aware chunking
+
+| Scheme | Passages | Words in top 10 | nDCG@10 | Recall@10 | Passage hit@10 | Passage hits per 1,000 words read |
+|---|---|---|---|---|---|---|
+| section220 | 222,520 | 1662 | 0.173 [0.161, 0.186] | 0.302 [0.282, 0.323] | 0.126 [0.112, 0.141] | 0.0761 |
+| fixed220 | 209,532 | 2194 | 0.185 [0.172, 0.199] | 0.314 [0.293, 0.334] | 0.160 [0.143, 0.175] | 0.0727 |
+| fixed170 | 268,990 | 1697 | 0.182 [0.168, 0.196] | 0.310 [0.289, 0.331] | 0.145 [0.130, 0.161] | 0.0857 |
+
+| Comparison | Difference |
+|---|---|
+| section220 vs fixed220 [ndcg@10] | -0.012 [-0.020, -0.004], p = 0.014 |
+| section220 vs fixed220 [recall@10] | -0.011 [-0.025, +0.002], p = 0.213 |
+| section220 vs fixed220 [passage_hit@5] | -0.024 [-0.035, -0.013], p = 0.001 |
+| section220 vs fixed220 [passage_hit@10] | -0.033 [-0.046, -0.022], p = 0.001 |
+| section220 vs fixed220 [passage_mrr@10] | -0.020 [-0.027, -0.013], p = 0.001 |
+| section220 vs fixed170 [ndcg@10] | -0.009 [-0.017, -0.001], p = 0.084 |
+| section220 vs fixed170 [recall@10] | -0.008 [-0.021, +0.005], p = 0.256 |
+| section220 vs fixed170 [passage_hit@5] | -0.013 [-0.022, -0.003], p = 0.084 |
+| section220 vs fixed170 [passage_hit@10] | -0.019 [-0.032, -0.006], p = 0.014 |
+| section220 vs fixed170 [passage_mrr@10] | -0.016 [-0.022, -0.009], p = 0.001 |
+
+### Query decomposition (RQ5)
+
+**Multi-issue queries** (n = 600):
+
+| Condition | Sub-queries | Recall@10 | nDCG@10 | All relevant cases in top 20 |
+|---|---|---|---|---|
+| none | 1.0 | 0.253 [0.228, 0.279] | 0.188 [0.168, 0.208] | 0.138 [0.110, 0.168] |
+| segments | 4.8 | 0.247 [0.221, 0.272] | 0.178 [0.159, 0.198] | 0.132 [0.105, 0.162] |
+| sentences | 4.6 | 0.244 [0.219, 0.270] | 0.174 [0.155, 0.194] | 0.138 [0.110, 0.168] |
+| oracle | 3.5 | 0.254 [0.229, 0.278] | 0.180 [0.161, 0.201] | 0.147 [0.118, 0.177] |
+
+| Comparison | Difference |
+|---|---|
+| segments vs none [recall@10] | -0.007 [-0.020, +0.006], p = 0.682 |
+| segments vs none [ndcg@10] | -0.009 [-0.021, +0.001], p = 0.411 |
+| sentences vs none [recall@10] | -0.009 [-0.023, +0.005], p = 0.672 |
+| sentences vs none [ndcg@10] | -0.013 [-0.024, -0.003], p = 0.077 |
+| oracle vs none [recall@10] | +0.000 [-0.011, +0.012], p = 1.000 |
+| oracle vs none [ndcg@10] | -0.007 [-0.016, +0.001], p = 0.411 |
+
+**Single-issue queries** (n = 1000):
+
+| Condition | Sub-queries | Recall@10 | nDCG@10 | All relevant cases in top 20 |
+|---|---|---|---|---|
+| none | 1.0 | 0.287 [0.261, 0.316] | 0.164 [0.147, 0.183] | 0.397 [0.368, 0.426] |
+| segments | 3.6 | 0.276 [0.251, 0.304] | 0.157 [0.139, 0.174] | 0.390 [0.362, 0.420] |
+| sentences | 3.6 | 0.292 [0.266, 0.320] | 0.161 [0.144, 0.179] | 0.395 [0.367, 0.425] |
+
+| Comparison | Difference |
+|---|---|
+| segments vs none [recall@10] | -0.011 [-0.024, +0.001], p = 0.380 |
+| segments vs none [ndcg@10] | -0.008 [-0.016, -0.001], p = 0.173 |
+| sentences vs none [recall@10] | +0.005 [-0.010, +0.019], p = 0.961 |
+| sentences vs none [ndcg@10] | -0.003 [-0.011, +0.005], p = 0.961 |
+
+### Time: future-case leakage and outdated authority (RQ6)
+
+| Queries | Corpus decided before the query | Recall@10 with as-of filter | Recall@10 without | Top-10 results from the query's future | Top result from the future |
+|---|---|---|---|---|---|
+| history (1975 to 1999), n = 800 | 49% | 0.466 | 0.335 | 0.522 [0.506, 0.540] | 0.489 [0.454, 0.524] |
+| test (2010 to 2018), n = 2000 | 99% | 0.305 | 0.303 | 0.016 [0.014, 0.019] | 0.022 [0.016, 0.029] |
+
+**Outdated authority.** Of 2,000 test queries, 1.3% had in their top 10 a case that the treatment table records as overruled or abrogated before the query date, and 0.6% a case overruled only afterwards. The table covers 9 corpus cases, so these are lower bounds. In 12 queries the case the court itself quoted had already received negative treatment.
+
+### Jurisdiction (RQ6)
+
+For 94.2% of test queries the case the court quoted was binding on that court (a Supreme Court decision or one of its own circuit).
+
+| Retrieval pool | Queries | Recall@10 |
+|---|---|---|
+| No court filter | all, n = 1854 | 0.305 [0.285, 0.327] |
+| Binding authority only | all, n = 1854 | 0.456 [0.433, 0.478] |
+| No court filter | quoted case is binding, n = 1746 | 0.298 [0.278, 0.321] |
+| Binding authority only | quoted case is binding, n = 1746 | 0.484 [0.461, 0.507] |
+| No court filter | quoted case is persuasive, n = 108 | 0.417 |
+| Binding authority only | quoted case is persuasive, n = 108 | 0.000 |
+| Another circuit's court of appeals only | all, n = 1854 | 0.002 |
+
+Under the wrong-circuit filter the best retrieval score separates matched from mismatched searches with AUROC 0.70.
+
+**Scope detection** on hand-written questions:
+
+| Question group | n | Flagged as outside the corpus |
+|---|---|---|
+| state | 15 | 15 (100%) |
+| foreign | 15 | 15 (100%) |
+| non legal | 10 | 0 (0%) |
+| in scope (false alarms) | 30 | 1 (3%) |
+
+### Grounded generation and citation quality (RQ4)
+
+**Generator `extractive`**, retrieval bm25, 300 test queries, 5 evidence passages. Support judged by `nli:cross-encoder/nli-deberta-v3-xsmall`; strict filter uses `lexical-containment`. Generation: 1 ms median.
+
+| Measure | normal, verification off | normal, verification strict | withheld, verification off | withheld, verification strict |
+|---|---|---|---|---|
+| Abstained | 0.00 [0.00, 0.01] | 0.00 [0.00, 0.01] | 0.00 [0.00, 0.01] | 0.00 [0.00, 0.01] |
+| Citation precision | 0.80 [0.78, 0.82] | 0.80 [0.78, 0.82] | 0.80 [0.78, 0.82] | 0.80 [0.78, 0.82] |
+| Citation recall | 0.80 [0.78, 0.82] | 0.80 [0.78, 0.82] | 0.80 [0.78, 0.82] | 0.80 [0.78, 0.82] |
+| Unsupported-claim rate | 0.20 [0.18, 0.22] | 0.20 [0.18, 0.22] | 0.20 [0.18, 0.22] | 0.20 [0.18, 0.22] |
+| Answers with a hallucinated citation | 0.00 [0.00, 0.01] | 0.00 [0.00, 0.01] | 0.00 [0.00, 0.01] | 0.00 [0.00, 0.01] |
+| Cites the quoted case | 0.19 [0.15, 0.23] | 0.19 [0.15, 0.23] | 0.00 [0.00, 0.01] | 0.00 [0.00, 0.01] |
+| Cites the quoted passage | 0.09 [0.06, 0.13] | 0.09 [0.06, 0.13] | 0.00 [0.00, 0.01] | 0.00 [0.00, 0.01] |
+
+Extractive statements are sentences copied from the passage they cite, so their true citation precision is 1. The figure shown is the share the entailment judge confirmed, which measures the judge. Strict filtering with the lexical judge removes nothing from verbatim text, so the columns match.
+
+**Generator `llm:TinyLlama/TinyLlama-1.1B-Chat-v1.0`**, retrieval bm25, 100 test queries, 3 evidence passages. Support judged by `nli:cross-encoder/nli-deberta-v3-xsmall`; strict filter uses `lexical-containment`. Generation: 9016 ms median.
+
+| Measure | normal, verification off | normal, verification strict | withheld, verification off | withheld, verification strict |
+|---|---|---|---|---|
+| Abstained | 0.00 [0.00, 0.04] | 1.00 [0.96, 1.00] | 0.00 [0.00, 0.04] | 1.00 [0.96, 1.00] |
+| Citation precision | n/a | n/a | n/a | n/a |
+| Citation recall | 0.00 [0.00, 0.00] | n/a | 0.00 [0.00, 0.00] | n/a |
+| Unsupported-claim rate | 1.00 [1.00, 1.00] | n/a | 1.00 [1.00, 1.00] | n/a |
+| Answers with a hallucinated citation | 0.31 [0.23, 0.41] | n/a | 0.31 [0.23, 0.41] | n/a |
+| Cites the quoted case | 0.09 [0.05, 0.16] | n/a | 0.00 [0.00, 0.04] | n/a |
+| Cites the quoted passage | 0.03 [0.01, 0.08] | n/a | 0.00 [0.00, 0.04] | n/a |
+
+In the withheld condition the case the court quoted is removed before retrieval. "n/a" marks a measure with no statements left to score.
+
+### Citation verification
+
+**Support judges** (300 test pairs of each kind). A good judge accepts a true quotation and rejects the other three.
+
+| Judge | Threshold | Accepts true quotation | Accepts: other case | Accepts: same case, wrong passage | Accepts: negated | Accuracy | Precision of 'supported' |
+|---|---|---|---|---|---|---|---|
+| lexical-containment | 0.60 (default) | 0.99 [0.97, 0.99] | 0.00 | 0.04 | 0.99 | 0.74 | 0.49 |
+| lexical-containment | 0.78 (tuned on development pairs) | 0.96 [0.93, 0.98] | 0.00 | 0.01 | 0.96 | 0.75 | 0.50 |
+| nli:cross-encoder/nli-deberta-v3-xsmall | 0.50 (default) | 0.69 [0.63, 0.74] | 0.01 | 0.04 | 0.15 | 0.87 | 0.77 |
+| nli:cross-encoder/nli-deberta-v3-xsmall | 0.51 (tuned on development pairs) | 0.69 [0.63, 0.74] | 0.01 | 0.04 | 0.15 | 0.87 | 0.77 |
+| nli:MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli | 0.50 (default) | 0.90 [0.86, 0.93] | 0.21 | 0.30 | 0.31 | 0.77 | 0.52 |
+| nli:MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli | 0.95 (tuned on development pairs) | 0.65 [0.60, 0.70] | 0.02 | 0.10 | 0.10 | 0.86 | 0.75 |
+
+**Planted citation errors**, judge `lexical-containment`. False alarms on 1,447 clean verbatim statements: 0.0%.
+
+| Planted error | Check | n | Detected |
+|---|---|---|---|
+| fabricated citation | exact lookup | 1447 | 1.000 [0.997, 1.000] |
+| real but unretrieved | exact lookup | 1447 | 0.999 [0.996, 1.000] |
+| wrong name | exact lookup | 1447 | 1.000 [0.997, 1.000] |
+| marker out of range | exact lookup | 1447 | 1.000 [0.997, 1.000] |
+| altered quotation | exact lookup | 1432 | 0.941 [0.927, 0.952] |
+| swapped marker | support judge | 1447 | 0.747 [0.724, 0.769] |
+| swapped claim | support judge | 1447 | 1.000 [0.997, 1.000] |
+| negated | support judge | 965 | 0.021 [0.013, 0.032] |
+
+**Planted citation errors**, judge `nli:cross-encoder/nli-deberta-v3-xsmall`. False alarms on 733 clean verbatim statements: 20.9%.
+
+| Planted error | Check | n | Detected |
+|---|---|---|---|
+| fabricated citation | exact lookup | 733 | 1.000 [0.995, 1.000] |
+| real but unretrieved | exact lookup | 733 | 0.999 [0.992, 1.000] |
+| wrong name | exact lookup | 733 | 1.000 [0.995, 1.000] |
+| marker out of range | exact lookup | 733 | 1.000 [0.995, 1.000] |
+| altered quotation | exact lookup | 724 | 0.943 [0.924, 0.958] |
+| swapped marker | support judge | 733 | 0.869 [0.843, 0.891] |
+| swapped claim | support judge | 733 | 0.995 [0.986, 0.998] |
+| negated | support judge | 501 | 0.942 [0.918, 0.959] |
+
+### Abstention (RQ7)
+
+Signal: cross-encoder score of the best passage (minilm-l6). Threshold tuned on 600 development queries; 600 test queries.
+
+| Condition in which the quoted case is unreachable | n | AUROC | Abstained (correct) | Answerable queries still answered |
+|---|---|---|---|---|
+| quoted case removed from the pool | 600 | 0.51 | 36% | 64% |
+| as-of date moved before the quoted case | 600 | 0.59 | 48% | 64% |
+| another circuit's court of appeals searched | 600 | 0.68 | 63% | 64% |
+| state-law, foreign-law and non-legal questions | 40 | 0.79 | 78% | 64% |
+
+The same score predicts whether the quoted case is in the top five with AUROC 0.58.
+
+Signal: BM25 score of the best passage. Threshold tuned on 600 development queries; 600 test queries.
+
+| Condition in which the quoted case is unreachable | n | AUROC | Abstained (correct) | Answerable queries still answered |
+|---|---|---|---|---|
+| quoted case removed from the pool | 600 | 0.50 | 68% | 33% |
+| as-of date moved before the quoted case | 600 | 0.59 | 77% | 33% |
+| another circuit's court of appeals searched | 600 | 0.69 | 88% | 33% |
+| state-law, foreign-law and non-legal questions | 40 | 0.99 | 100% | 33% |
+
+The same score predicts whether the quoted case is in the top five with AUROC 0.51.
+
+On the out-of-scope questions the scope rule alone abstains on 75%; rule or score together on 100%.
+
+### Latency and resources
+
+Per query, one at a time, on macOS-26.6.2-arm64-arm-64bit (mps), 200 queries.
+
+| Stage | Mean ms | Median ms | p95 ms |
+|---|---|---|---|
+| bm25 retrieval | 3.5 | 3.6 | 5.1 |
+| dense query encoding | 10.2 | 9.4 | 13.2 |
+| dense search exact | 5.1 | 5.0 | 5.7 |
+| rank fusion | 0.1 | 0.1 | 0.1 |
+| reranking top50 | 264.1 | 258.0 | 304.6 |
+| evidence selection | 0.2 | 0.2 | 0.8 |
+| generation extractive | 0.9 | 0.9 | 1.1 |
+| citation verification[nli:cross-encoder/nli-deberta-v3-xsmall] | 807.4 | 756.0 | 1411.3 |
+
+| Index | Disk MB | Build rate |
+|---|---|---|
+| bm25 | 38 | n/a |
+| dense-bge-small | 171 | 180 passages/s on mps |
+
+Storage: raw opinions 312 MB, processed corpus 1282 MB. Peak resident memory of the run: 2.5 GB.
 <!-- results:end -->
 
 Error patterns are analysed in [docs/error_analysis.md](docs/error_analysis.md).
@@ -208,8 +519,10 @@ Error patterns are analysed in [docs/error_analysis.md](docs/error_analysis.md).
   on near-verbatim quotations, which is easier than paraphrase.
 - **No reference answers.** Generation quality is measured by citation support and by
   proximity to what the court quoted, not by legal correctness.
-- **Small local models.** The results reported use a 33M-parameter encoder and a
-  22M-parameter reranker.
+- **Small local models.** The results reported use a 33M-parameter encoder, a
+  22M-parameter reranker trained on web search, and a 1.1B-parameter chat model. The
+  negative results for reranking and for model-based generation describe those
+  models, not the techniques.
 
 ## Installation
 
@@ -298,16 +611,21 @@ and contains no dataset and no model weights.
 ```bash
 legalrag experiment retrieval
 legalrag experiment rerank reranker=minilm-l6 encoder=bge-small fusion=score alpha=0.7 k1=1.6 b=0.75
+legalrag experiment rerank reranker=minilm-l6 k1=1.6 b=0.75
 legalrag experiment chunking
 legalrag experiment decomposition k1=1.6 b=0.75
 legalrag experiment temporal k1=1.6 b=0.75
 legalrag experiment jurisdiction k1=1.6 b=0.75
 legalrag experiment judge judges=lexical,nli-xsmall,nli-base
-legalrag experiment citations judge=nli-base limit=150 k1=1.6 b=0.75
+legalrag experiment citations judge=lexical k1=1.6 b=0.75
+legalrag experiment citations judge=nli-xsmall limit=150 k1=1.6 b=0.75
+legalrag experiment abstention k1=1.6 b=0.75
 legalrag experiment abstention reranker=minilm-l6 k1=1.6 b=0.75
-legalrag experiment rag generator=extractive eval_judge=nli-base filter_judge=lexical k1=1.6 b=0.75
+legalrag experiment rag generator=extractive eval_judge=nli-xsmall filter_judge=lexical k1=1.6 b=0.75
+legalrag experiment rag generator=hf:TinyLlama/TinyLlama-1.1B-Chat-v1.0 limit=100 evidence_k=3 \
+    eval_judge=nli-xsmall filter_judge=lexical k1=1.6 b=0.75 tag=tinyllama-1.1b
 legalrag experiment analysis k1=1.6 b=0.75
-legalrag experiment systems encoder=bge-small reranker=minilm-l6 judge=nli-base
+legalrag experiment systems encoder=bge-small reranker=minilm-l6 judge=nli-xsmall
 python scripts/make_results_tables.py
 ```
 

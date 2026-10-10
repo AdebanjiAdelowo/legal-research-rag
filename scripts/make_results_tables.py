@@ -260,6 +260,14 @@ def jurisdiction() -> str:
     return "\n\n".join(out)
 
 
+CONDITIONS = {
+    "gold_withheld": "quoted case removed from the pool",
+    "predates_gold": "as-of date moved before the quoted case",
+    "wrong_circuit": "another circuit's court of appeals searched",
+    "out_of_scope": "state-law, foreign-law and non-legal questions",
+}
+
+
 def abstention() -> str:
     files = (
         sorted((RESULTS / "abstention").glob("abstention_*.json"))
@@ -274,7 +282,7 @@ def abstention() -> str:
         cfg, top = r["config"], r["signals"]["top1"]
         signal = "cross-encoder score" if cfg["reranker"] else "BM25 score"
         rows = [
-            [name.replace("_", " "), m["n_unanswerable"], num(m["auroc"], 2),
+            [CONDITIONS.get(name, name), m["n_unanswerable"], num(m["auroc"], 2),
              f"{m['abstain_recall']:.0%}", f"{m['coverage_answerable']:.0%}"]
             for name, m in top["test"].items()
         ]  # fmt: skip
@@ -380,6 +388,17 @@ def rag() -> str:
             + f". Generation: {r['generation_seconds']['p50'] * 1000:.0f} ms median."
         )
         out.append(table(["Measure", *columns], rows))
+        if cfg["generator"] == "extractive":
+            out.append(
+                "Extractive statements are sentences copied from the passage they cite, so "
+                "their true citation precision is 1. The figure shown is the share the "
+                "entailment judge confirmed, which measures the judge. Strict filtering with "
+                "the lexical judge removes nothing from verbatim text, so the columns match."
+            )
+    out.append(
+        "In the withheld condition the case the court quoted is removed before retrieval. "
+        "\"n/a\" marks a measure with no statements left to score."
+    )
     return "\n\n".join(out)
 
 
