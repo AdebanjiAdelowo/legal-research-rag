@@ -5,7 +5,7 @@
 
 Every number in the README's Results section comes from here, so a table cannot
 drift from the run that produced it. An experiment with no result file is listed as
-PENDING with the command that produces it.
+reported as not run, with the command that produces it.
 """
 
 from __future__ import annotations
@@ -48,7 +48,8 @@ def table(header: list[str], rows: list[list[str]]) -> str:
 
 
 def pending(what: str, command: str, reason: str) -> str:
-    return f"**PENDING: {what}.** {reason}\n\n```bash\n{command}\n```"
+    """Text for an experiment with no result file: what is missing and how to run it."""
+    return f"No result is reported for {what}. {reason}\n\n```bash\n{command}\n```"
 
 
 NAMES = {
@@ -75,7 +76,7 @@ def system_name(key: str) -> str:
 def retrieval() -> str:
     r = load("retrieval/retrieval_section220.json")
     if not r:
-        return pending("retrieval comparison", "legalrag experiment retrieval", "Not run.")
+        return pending("retrieval comparison", "legalrag experiment retrieval", "It has not been run on this corpus version.")
     cfg, out = r["config"], []
     out.append(
         f"{cfg['n_test']:,} test queries over {cfg['chunks']:,} passages; settings tuned on "
@@ -122,7 +123,7 @@ def rerank() -> str:
     )
     if not files:
         return pending("cross-encoder reranking (RQ3)", "legalrag experiment rerank k1=1.6 b=0.75",
-                       "Not run.")  # fmt: skip
+                       "It has not been run on this corpus version.")  # fmt: skip
     out = []
     for f in files:
         r = json.loads(f.read_text())
@@ -152,7 +153,7 @@ def rerank() -> str:
 def chunking() -> str:
     r = load("chunking/chunking_bm25.json")
     if not r:
-        return pending("chunking ablation", "legalrag experiment chunking", "Not run.")
+        return pending("chunking ablation", "legalrag experiment chunking", "It has not been run on this corpus version.")
     rows = []
     for key, s in r["systems"].items():
         info = r["schemes"][key]
@@ -171,7 +172,7 @@ def chunking() -> str:
 def decomposition() -> str:
     r = load("decomposition/decomposition_bm25.json")
     if not r:
-        return pending("query decomposition (RQ5)", "legalrag experiment decomposition", "Not run.")
+        return pending("query decomposition (RQ5)", "legalrag experiment decomposition", "It has not been run on this corpus version.")
     out = []
     for part, title in (
         ("multi_issue", "Multi-issue queries"),
@@ -194,7 +195,7 @@ def decomposition() -> str:
 def temporal() -> str:
     r = load("robustness/temporal_bm25.json")
     if not r:
-        return pending("temporal evaluation", "legalrag experiment temporal", "Not run.")
+        return pending("temporal evaluation", "legalrag experiment temporal", "It has not been run on this corpus version.")
     rows = []
     for split, v in r["leakage"].items():
         rows.append([
@@ -222,7 +223,7 @@ def temporal() -> str:
 def jurisdiction() -> str:
     r = load("robustness/jurisdiction_bm25.json")
     if not r:
-        return pending("jurisdiction experiment", "legalrag experiment jurisdiction", "Not run.")
+        return pending("jurisdiction experiment", "legalrag experiment jurisdiction", "It has not been run on this corpus version.")
     b, g, w = r["binding_only_filter"], r["gold_authority"], r["wrong_circuit"]
     bind, pers = b["queries_whose_gold_is_binding"], b["queries_whose_gold_is_persuasive"]
     rows = [
@@ -263,7 +264,7 @@ def abstention() -> str:
         else []
     )
     if not files:
-        return pending("abstention (RQ7)", "legalrag experiment abstention", "Not run.")
+        return pending("abstention (RQ7)", "legalrag experiment abstention", "It has not been run on this corpus version.")
     out = []
     for f in files:
         r = json.loads(f.read_text())
@@ -313,7 +314,7 @@ def verification() -> str:
         out.append(table(["Judge", "Accepts true quotation", "Accepts: other case",
                           "Accepts: same case, wrong passage", "Accepts: negated", "Accuracy"], rows))  # fmt: skip
     else:
-        out.append(pending("judge validation", "legalrag experiment judge", "Not run."))
+        out.append(pending("judge validation", "legalrag experiment judge", "It has not been run on this corpus version."))
     check_files = (
         sorted((RESULTS / "verification").glob("citation_checker_*.json"))
         if (RESULTS / "verification").exists()
@@ -336,7 +337,7 @@ def verification() -> str:
 def rag() -> str:
     files = sorted((RESULTS / "rag").glob("rag_*.json")) if (RESULTS / "rag").exists() else []
     if not files:
-        return pending("grounded generation (RQ4)", "legalrag experiment rag", "Not run.")
+        return pending("grounded generation (RQ4)", "legalrag experiment rag", "It has not been run on this corpus version.")
     keys = [
         ("abstained", "Abstained"),
         ("citation_precision", "Citation precision"),
@@ -375,7 +376,7 @@ def systems() -> str:
         else []
     )
     if not files:
-        return pending("latency and resources", "legalrag experiment systems", "Not run.")
+        return pending("latency and resources", "legalrag experiment systems", "It has not been run on this corpus version.")
     r = json.loads(max(files, key=lambda f: len(f.name)).read_text())
     rows = [[k.replace("_", " "), f"{v['mean_ms']:.1f}", f"{v['p50_ms']:.1f}", f"{v['p95_ms']:.1f}"]
             for k, v in r["stages"].items()]  # fmt: skip
