@@ -18,13 +18,17 @@ Measured where a local run exists, otherwise computed from parameter counts.
 | `nomic-ai/modernbert-embed-base` and its index | 596 MB | 596 MB + 342 MB | about 4 GB |
 | `freelawproject/modernbert-embed-base_finetune_512` and its index | 596 MB | 596 MB + 342 MB | about 4 GB |
 | `BAAI/bge-reranker-v2-m3` | 2.3 GB | 2.3 GB | about 4 GB |
-| `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli` | 1.7 GB | 1.7 GB | about 3 GB |
+| `MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli` | 870 MB | 870 MB | about 3 GB |
 | `Qwen/Qwen2.5-7B-Instruct` in half precision | 15.2 GB | 15.2 GB | about 16 GB |
 
-Total: about 22 GB of downloads and 24 GB of disk. A single 16 GB GPU (T4 or P100)
+Weight sizes and licences were read from the Hugging Face Hub API on 2026-10-10: all
+models above are Apache-2.0, MIT or CC0 and none is gated. GPU memory figures are
+estimates from parameter counts, not measurements.
+
+Total: about 21 GB of downloads and 23 GB of disk. A single 16 GB GPU (T4 or P100)
 is enough for everything except the 7B generator, which needs the T4 x2 option or a
-smaller model. To use a smaller generator, set for example
-`LEGALRAG_GENERATOR=hf:Qwen/Qwen2.5-3B-Instruct` (about 6 GB).
+smaller model. For a smaller generator set
+`LEGALRAG_GENERATOR=hf:microsoft/Phi-3-mini-4k-instruct` (MIT, 7.6 GB).
 
 Expected run time on a T4: about 25 minutes per ModernBERT index, 15 minutes for
 reranking 2,000 queries at depth 100, and 60 to 90 minutes for 600 generations.

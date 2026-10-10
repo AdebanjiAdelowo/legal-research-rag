@@ -109,7 +109,7 @@ def _experiment(args) -> None:
         if value.isdigit():
             kwargs[key] = int(value)
         elif "," in value:
-            kwargs[key] = value.split(",")
+            kwargs[key] = [v for v in value.split(",") if v]
     result = module.run(**kwargs)
     if args.print:
         print(json.dumps({k: v for k, v in result.items() if k not in ("versions", "device")},
