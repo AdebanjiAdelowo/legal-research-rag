@@ -11,7 +11,7 @@ from legalrag.paths import Paths
 
 EXPERIMENTS = (
     "retrieval", "chunking", "rerank", "decomposition", "temporal", "jurisdiction",
-    "citations", "judge", "rag", "abstention", "systems",
+    "citations", "judge", "rag", "abstention", "systems", "analysis",
 )  # fmt: skip
 
 
