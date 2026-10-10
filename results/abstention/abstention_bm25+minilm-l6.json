@@ -1,0 +1,192 @@
+{
+  "created": "2026-10-10T13:49:00+0200",
+  "config": {
+    "experiment": "abstention",
+    "retriever": "bm25",
+    "bm25": {
+      "k1": 1.6,
+      "b": 0.75
+    },
+    "reranker": "minilm-l6",
+    "rerank_top_n": 30,
+    "n_dev": 600,
+    "n_test": 600,
+    "n_out_of_scope": 40
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "c2aff023ad5afbfa3327c3480ca14e5cbfaee557",
+    "dirty_paths": []
+  },
+  "versions": {
+    "python": "3.12.2",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "device": "mps"
+  },
+  "signals": {
+    "top1": {
+      "dev_tuning": {
+        "threshold": 1.3347008228302002,
+        "balanced_accuracy": 0.5067,
+        "auroc": 0.5059
+      },
+      "test": {
+        "gold_withheld": {
+          "threshold": 1.3347008228302002,
+          "coverage_answerable": 0.64,
+          "abstain_recall": 0.365,
+          "abstain_precision": 0.5034,
+          "answered_when_unanswerable": 0.635,
+          "auroc": 0.5063,
+          "n_answerable": 600,
+          "n_unanswerable": 600
+        },
+        "predates_gold": {
+          "threshold": 1.3347008228302002,
+          "coverage_answerable": 0.64,
+          "abstain_recall": 0.4833,
+          "abstain_precision": 0.5731,
+          "answered_when_unanswerable": 0.5167,
+          "auroc": 0.5906,
+          "n_answerable": 600,
+          "n_unanswerable": 600
+        },
+        "wrong_circuit": {
+          "threshold": 1.3347008228302002,
+          "coverage_answerable": 0.64,
+          "abstain_recall": 0.6333,
+          "abstain_precision": 0.6376,
+          "answered_when_unanswerable": 0.3667,
+          "auroc": 0.6769,
+          "n_answerable": 600,
+          "n_unanswerable": 600
+        },
+        "out_of_scope": {
+          "threshold": 1.3347008228302002,
+          "coverage_answerable": 0.64,
+          "abstain_recall": 0.775,
+          "abstain_precision": 0.1255,
+          "answered_when_unanswerable": 0.225,
+          "auroc": 0.7938,
+          "n_answerable": 600,
+          "n_unanswerable": 40
+        }
+      },
+      "predicts_gold_in_top5_auroc": 0.5827
+    },
+    "mean3": {
+      "dev_tuning": {
+        "threshold": 0.08695294708013535,
+        "balanced_accuracy": 0.5075,
+        "auroc": 0.5052
+      },
+      "test": {
+        "gold_withheld": {
+          "threshold": 0.08695294708013535,
+          "coverage_answerable": 0.7117,
+          "abstain_recall": 0.2917,
+          "abstain_precision": 0.5029,
+          "answered_when_unanswerable": 0.7083,
+          "auroc": 0.5052,
+          "n_answerable": 600,
+          "n_unanswerable": 600
+        },
+        "predates_gold": {
+          "threshold": 0.08695294708013535,
+          "coverage_answerable": 0.7117,
+          "abstain_recall": 0.39,
+          "abstain_precision": 0.5749,
+          "answered_when_unanswerable": 0.61,
+          "auroc": 0.5903,
+          "n_answerable": 600,
+          "n_unanswerable": 600
+        },
+        "wrong_circuit": {
+          "threshold": 0.08695294708013535,
+          "coverage_answerable": 0.7117,
+          "abstain_recall": 0.55,
+          "abstain_precision": 0.6561,
+          "answered_when_unanswerable": 0.45,
+          "auroc": 0.6882,
+          "n_answerable": 600,
+          "n_unanswerable": 600
+        },
+        "out_of_scope": {
+          "threshold": 0.08695294708013535,
+          "coverage_answerable": 0.7117,
+          "abstain_recall": 0.725,
+          "abstain_precision": 0.1436,
+          "answered_when_unanswerable": 0.275,
+          "auroc": 0.8121,
+          "n_answerable": 600,
+          "n_unanswerable": 40
+        }
+      },
+      "predicts_gold_in_top5_auroc": 0.5757
+    },
+    "margin": {
+      "dev_tuning": {
+        "threshold": 1.7089495658874512,
+        "balanced_accuracy": 0.5075,
+        "auroc": 0.5016
+      },
+      "test": {
+        "gold_withheld": {
+          "threshold": 1.7089495658874512,
+          "coverage_answerable": 0.7233,
+          "abstain_recall": 0.2783,
+          "abstain_precision": 0.5015,
+          "answered_when_unanswerable": 0.7217,
+          "auroc": 0.5066,
+          "n_answerable": 600,
+          "n_unanswerable": 600
+        },
+        "predates_gold": {
+          "threshold": 1.7089495658874512,
+          "coverage_answerable": 0.7233,
+          "abstain_recall": 0.2433,
+          "abstain_precision": 0.4679,
+          "answered_when_unanswerable": 0.7567,
+          "auroc": 0.4856,
+          "n_answerable": 600,
+          "n_unanswerable": 600
+        },
+        "wrong_circuit": {
+          "threshold": 1.7089495658874512,
+          "coverage_answerable": 0.7233,
+          "abstain_recall": 0.1833,
+          "abstain_precision": 0.3986,
+          "answered_when_unanswerable": 0.8167,
+          "auroc": 0.425,
+          "n_answerable": 600,
+          "n_unanswerable": 600
+        },
+        "out_of_scope": {
+          "threshold": 1.7089495658874512,
+          "coverage_answerable": 0.7233,
+          "abstain_recall": 0.175,
+          "abstain_precision": 0.0405,
+          "answered_when_unanswerable": 0.825,
+          "auroc": 0.3499,
+          "n_answerable": 600,
+          "n_unanswerable": 40
+        }
+      },
+      "predicts_gold_in_top5_auroc": 0.5637
+    }
+  },
+  "gold_in_top5_rate": 0.14,
+  "out_of_scope_combined": {
+    "abstained_by_rule": 0.75,
+    "abstained_by_score": 0.775,
+    "abstained_by_either": 1.0
+  }
+}

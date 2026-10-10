@@ -1,19 +1,15 @@
 {
-  "created": "2026-10-10T13:34:09+0200",
+  "created": "2026-10-10T14:20:58+0200",
   "config": {
     "experiment": "judge_validation",
     "n_per_kind": 300,
+    "n_per_kind_dev": 300,
     "seed": 0
   },
   "corpus_version": "c1b900e309df",
   "git": {
-    "commit": "72d0d11d3287dc5f0ce7921a7422f4bcdd7df8e9",
-    "dirty_paths": [
-      "EADME.md",
-      "scripts/make_results_tables.py",
-      "src/legalrag/experiments/rerank.py",
-      "results/rerank/"
-    ]
+    "commit": null,
+    "dirty_paths": []
   },
   "versions": {
     "python": "3.12.2",
@@ -60,6 +56,38 @@
       "recall_on_supported": 0.9867,
       "precision_of_supported_label": 0.4901,
       "accuracy": 0.74,
+      "calibrated_on_dev": {
+        "threshold": 0.778,
+        "accept_rate": {
+          "supported": {
+            "n": 300,
+            "accepted": 0.96,
+            "ci_low": 0.9314,
+            "ci_high": 0.977
+          },
+          "other_case": {
+            "n": 300,
+            "accepted": 0.0,
+            "ci_low": 0.0,
+            "ci_high": 0.0126
+          },
+          "same_case": {
+            "n": 300,
+            "accepted": 0.01,
+            "ci_low": 0.0034,
+            "ci_high": 0.029
+          },
+          "negated": {
+            "n": 300,
+            "accepted": 0.96,
+            "ci_low": 0.9314,
+            "ci_high": 0.977
+          }
+        },
+        "recall_on_supported": 0.96,
+        "precision_of_supported_label": 0.4974,
+        "accuracy": 0.7475
+      },
       "auroc": {
         "other_case": 0.9996,
         "same_case": 0.9954,
@@ -97,6 +125,38 @@
       "recall_on_supported": 0.6867,
       "precision_of_supported_label": 0.7744,
       "accuracy": 0.8717,
+      "calibrated_on_dev": {
+        "threshold": 0.507,
+        "accept_rate": {
+          "supported": {
+            "n": 300,
+            "accepted": 0.6867,
+            "ci_low": 0.6321,
+            "ci_high": 0.7365
+          },
+          "other_case": {
+            "n": 300,
+            "accepted": 0.0133,
+            "ci_low": 0.0052,
+            "ci_high": 0.0338
+          },
+          "same_case": {
+            "n": 300,
+            "accepted": 0.0367,
+            "ci_low": 0.0206,
+            "ci_high": 0.0645
+          },
+          "negated": {
+            "n": 300,
+            "accepted": 0.15,
+            "ci_low": 0.114,
+            "ci_high": 0.1948
+          }
+        },
+        "recall_on_supported": 0.6867,
+        "precision_of_supported_label": 0.7744,
+        "accuracy": 0.8717
+      },
       "auroc": {
         "other_case": 0.9376,
         "same_case": 0.9141,
@@ -134,6 +194,38 @@
       "recall_on_supported": 0.9033,
       "precision_of_supported_label": 0.5232,
       "accuracy": 0.77,
+      "calibrated_on_dev": {
+        "threshold": 0.946,
+        "accept_rate": {
+          "supported": {
+            "n": 300,
+            "accepted": 0.6533,
+            "ci_low": 0.5978,
+            "ci_high": 0.7049
+          },
+          "other_case": {
+            "n": 300,
+            "accepted": 0.02,
+            "ci_low": 0.0092,
+            "ci_high": 0.0429
+          },
+          "same_case": {
+            "n": 300,
+            "accepted": 0.1,
+            "ci_low": 0.0709,
+            "ci_high": 0.1392
+          },
+          "negated": {
+            "n": 300,
+            "accepted": 0.0967,
+            "ci_low": 0.0682,
+            "ci_high": 0.1354
+          }
+        },
+        "recall_on_supported": 0.6533,
+        "precision_of_supported_label": 0.751,
+        "accuracy": 0.8592
+      },
       "auroc": {
         "other_case": 0.932,
         "same_case": 0.8796,
