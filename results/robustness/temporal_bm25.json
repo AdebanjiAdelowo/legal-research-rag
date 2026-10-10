@@ -1,0 +1,545 @@
+{
+  "created": "2026-10-10T12:41:28+0200",
+  "config": {
+    "experiment": "temporal",
+    "retriever": "bm25",
+    "bm25": {
+      "k1": 1.6,
+      "b": 0.75
+    }
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "b240bac74d630e324cfcfc3c41adfa98e7d0bd3f",
+    "dirty_paths": [
+      "rc/legalrag/cli.py",
+      "src/legalrag/experiments/common.py",
+      "results/",
+      "src/legalrag/experiments/abstention.py",
+      "src/legalrag/experiments/chunking.py",
+      "src/legalrag/experiments/citations.py",
+      "src/legalrag/experiments/decomposition.py",
+      "src/legalrag/experiments/fixtures.py",
+      "src/legalrag/experiments/judge.py",
+      "src/legalrag/experiments/jurisdiction.py",
+      "src/legalrag/experiments/temporal.py",
+      "tests/test_experiments.py"
+    ]
+  },
+  "versions": {
+    "python": "3.12.2",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "device": "mps"
+  },
+  "leakage": {
+    "history": {
+      "n": 800,
+      "date_range": [
+        "1975-02-11",
+        "1999-12-30"
+      ],
+      "corpus_share_eligible_mean": 0.488,
+      "as_of_filter": {
+        "recall@1": {
+          "mean": 0.1325,
+          "ci_low": 0.1087,
+          "ci_high": 0.1562,
+          "n": 800
+        },
+        "recall@5": {
+          "mean": 0.3538,
+          "ci_low": 0.3212,
+          "ci_high": 0.3887,
+          "n": 800
+        },
+        "recall@10": {
+          "mean": 0.4662,
+          "ci_low": 0.4325,
+          "ci_high": 0.5,
+          "n": 800
+        },
+        "recall@20": {
+          "mean": 0.5713,
+          "ci_low": 0.5387,
+          "ci_high": 0.6038,
+          "n": 800
+        },
+        "recall@100": {
+          "mean": 0.8,
+          "ci_low": 0.77,
+          "ci_high": 0.8263,
+          "n": 800
+        },
+        "mrr@10": {
+          "mean": 0.2224,
+          "ci_low": 0.1994,
+          "ci_high": 0.2465,
+          "n": 800
+        },
+        "ndcg@10": {
+          "mean": 0.2799,
+          "ci_low": 0.2557,
+          "ci_high": 0.305,
+          "n": 800
+        },
+        "precision@1": {
+          "mean": 0.1325,
+          "ci_low": 0.1087,
+          "ci_high": 0.1562,
+          "n": 800
+        },
+        "precision@5": {
+          "mean": 0.0708,
+          "ci_low": 0.0643,
+          "ci_high": 0.0777,
+          "n": 800
+        },
+        "precision@10": {
+          "mean": 0.0466,
+          "ci_low": 0.0433,
+          "ci_high": 0.05,
+          "n": 800
+        },
+        "passage_hit@1": {
+          "mean": 0.0464,
+          "ci_low": 0.0326,
+          "ci_high": 0.0614,
+          "n": 798
+        },
+        "passage_hit@5": {
+          "mean": 0.1178,
+          "ci_low": 0.0952,
+          "ci_high": 0.1404,
+          "n": 798
+        },
+        "passage_hit@10": {
+          "mean": 0.1817,
+          "ci_low": 0.1554,
+          "ci_high": 0.208,
+          "n": 798
+        },
+        "passage_hit@20": {
+          "mean": 0.2293,
+          "ci_low": 0.2005,
+          "ci_high": 0.2594,
+          "n": 798
+        },
+        "passage_mrr@10": {
+          "mean": 0.0792,
+          "ci_low": 0.0638,
+          "ci_high": 0.0953,
+          "n": 798
+        }
+      },
+      "no_filter": {
+        "recall@1": {
+          "mean": 0.0813,
+          "ci_low": 0.0625,
+          "ci_high": 0.1013,
+          "n": 800
+        },
+        "recall@5": {
+          "mean": 0.2362,
+          "ci_low": 0.2062,
+          "ci_high": 0.2662,
+          "n": 800
+        },
+        "recall@10": {
+          "mean": 0.335,
+          "ci_low": 0.3025,
+          "ci_high": 0.3675,
+          "n": 800
+        },
+        "recall@20": {
+          "mean": 0.4363,
+          "ci_low": 0.4012,
+          "ci_high": 0.4713,
+          "n": 800
+        },
+        "recall@100": {
+          "mean": 0.6775,
+          "ci_low": 0.645,
+          "ci_high": 0.7075,
+          "n": 800
+        },
+        "mrr@10": {
+          "mean": 0.1469,
+          "ci_low": 0.1274,
+          "ci_high": 0.1672,
+          "n": 800
+        },
+        "ndcg@10": {
+          "mean": 0.191,
+          "ci_low": 0.1698,
+          "ci_high": 0.2126,
+          "n": 800
+        },
+        "precision@1": {
+          "mean": 0.0813,
+          "ci_low": 0.0625,
+          "ci_high": 0.1013,
+          "n": 800
+        },
+        "precision@5": {
+          "mean": 0.0472,
+          "ci_low": 0.0413,
+          "ci_high": 0.0532,
+          "n": 800
+        },
+        "precision@10": {
+          "mean": 0.0335,
+          "ci_low": 0.0303,
+          "ci_high": 0.0367,
+          "n": 800
+        },
+        "passage_hit@1": {
+          "mean": 0.0288,
+          "ci_low": 0.0175,
+          "ci_high": 0.0414,
+          "n": 798
+        },
+        "passage_hit@5": {
+          "mean": 0.0827,
+          "ci_low": 0.0639,
+          "ci_high": 0.1015,
+          "n": 798
+        },
+        "passage_hit@10": {
+          "mean": 0.1165,
+          "ci_low": 0.094,
+          "ci_high": 0.1391,
+          "n": 798
+        },
+        "passage_hit@20": {
+          "mean": 0.1704,
+          "ci_low": 0.1441,
+          "ci_high": 0.1967,
+          "n": 798
+        },
+        "passage_mrr@10": {
+          "mean": 0.0524,
+          "ci_low": 0.0405,
+          "ci_high": 0.0658,
+          "n": 798
+        },
+        "future_share@10": {
+          "mean": 0.5225,
+          "ci_low": 0.5058,
+          "ci_high": 0.5401
+        },
+        "top1_is_future": {
+          "mean": 0.4888,
+          "ci_low": 0.4537,
+          "ci_high": 0.5238
+        }
+      },
+      "comparisons": {
+        "as-of vs no filter [recall@10]": {
+          "metric": "recall@10",
+          "diff": 0.1313,
+          "ci_low": 0.1087,
+          "ci_high": 0.1537,
+          "p": 0.0001,
+          "n": 800,
+          "p_holm": 0.0003
+        },
+        "as-of vs no filter [ndcg@10]": {
+          "metric": "ndcg@10",
+          "diff": 0.0889,
+          "ci_low": 0.0779,
+          "ci_high": 0.1,
+          "p": 0.0001,
+          "n": 800,
+          "p_holm": 0.0003
+        },
+        "as-of vs no filter [passage_hit@10]": {
+          "metric": "passage_hit@10",
+          "diff": 0.0652,
+          "ci_low": 0.0476,
+          "ci_high": 0.0827,
+          "p": 0.0001,
+          "n": 798,
+          "p_holm": 0.0003
+        }
+      }
+    },
+    "test": {
+      "n": 2000,
+      "date_range": [
+        "2010-01-04",
+        "2018-02-09"
+      ],
+      "corpus_share_eligible_mean": 0.992,
+      "as_of_filter": {
+        "recall@1": {
+          "mean": 0.0725,
+          "ci_low": 0.0615,
+          "ci_high": 0.084,
+          "n": 2000
+        },
+        "recall@5": {
+          "mean": 0.2265,
+          "ci_low": 0.209,
+          "ci_high": 0.245,
+          "n": 2000
+        },
+        "recall@10": {
+          "mean": 0.3055,
+          "ci_low": 0.285,
+          "ci_high": 0.326,
+          "n": 2000
+        },
+        "recall@20": {
+          "mean": 0.4115,
+          "ci_low": 0.39,
+          "ci_high": 0.4335,
+          "n": 2000
+        },
+        "recall@100": {
+          "mean": 0.694,
+          "ci_low": 0.674,
+          "ci_high": 0.7145,
+          "n": 2000
+        },
+        "mrr@10": {
+          "mean": 0.1364,
+          "ci_low": 0.1249,
+          "ci_high": 0.1489,
+          "n": 2000
+        },
+        "ndcg@10": {
+          "mean": 0.1762,
+          "ci_low": 0.1633,
+          "ci_high": 0.1897,
+          "n": 2000
+        },
+        "precision@1": {
+          "mean": 0.0725,
+          "ci_low": 0.0615,
+          "ci_high": 0.084,
+          "n": 2000
+        },
+        "precision@5": {
+          "mean": 0.0453,
+          "ci_low": 0.0418,
+          "ci_high": 0.049,
+          "n": 2000
+        },
+        "precision@10": {
+          "mean": 0.0305,
+          "ci_low": 0.0285,
+          "ci_high": 0.0326,
+          "n": 2000
+        },
+        "passage_hit@1": {
+          "mean": 0.0286,
+          "ci_low": 0.0216,
+          "ci_high": 0.0361,
+          "n": 1994
+        },
+        "passage_hit@5": {
+          "mean": 0.0943,
+          "ci_low": 0.0807,
+          "ci_high": 0.1073,
+          "n": 1994
+        },
+        "passage_hit@10": {
+          "mean": 0.1269,
+          "ci_low": 0.1118,
+          "ci_high": 0.1419,
+          "n": 1994
+        },
+        "passage_hit@20": {
+          "mean": 0.181,
+          "ci_low": 0.164,
+          "ci_high": 0.1981,
+          "n": 1994
+        },
+        "passage_mrr@10": {
+          "mean": 0.056,
+          "ci_low": 0.0477,
+          "ci_high": 0.0645,
+          "n": 1994
+        }
+      },
+      "no_filter": {
+        "recall@1": {
+          "mean": 0.0715,
+          "ci_low": 0.061,
+          "ci_high": 0.083,
+          "n": 2000
+        },
+        "recall@5": {
+          "mean": 0.225,
+          "ci_low": 0.207,
+          "ci_high": 0.243,
+          "n": 2000
+        },
+        "recall@10": {
+          "mean": 0.303,
+          "ci_low": 0.283,
+          "ci_high": 0.324,
+          "n": 2000
+        },
+        "recall@20": {
+          "mean": 0.4085,
+          "ci_low": 0.3865,
+          "ci_high": 0.4305,
+          "n": 2000
+        },
+        "recall@100": {
+          "mean": 0.692,
+          "ci_low": 0.6715,
+          "ci_high": 0.7125,
+          "n": 2000
+        },
+        "mrr@10": {
+          "mean": 0.135,
+          "ci_low": 0.1236,
+          "ci_high": 0.1474,
+          "n": 2000
+        },
+        "ndcg@10": {
+          "mean": 0.1746,
+          "ci_low": 0.1619,
+          "ci_high": 0.188,
+          "n": 2000
+        },
+        "precision@1": {
+          "mean": 0.0715,
+          "ci_low": 0.061,
+          "ci_high": 0.083,
+          "n": 2000
+        },
+        "precision@5": {
+          "mean": 0.045,
+          "ci_low": 0.0414,
+          "ci_high": 0.0486,
+          "n": 2000
+        },
+        "precision@10": {
+          "mean": 0.0303,
+          "ci_low": 0.0283,
+          "ci_high": 0.0324,
+          "n": 2000
+        },
+        "passage_hit@1": {
+          "mean": 0.0281,
+          "ci_low": 0.0211,
+          "ci_high": 0.0356,
+          "n": 1994
+        },
+        "passage_hit@5": {
+          "mean": 0.0933,
+          "ci_low": 0.0802,
+          "ci_high": 0.1063,
+          "n": 1994
+        },
+        "passage_hit@10": {
+          "mean": 0.1269,
+          "ci_low": 0.1118,
+          "ci_high": 0.1419,
+          "n": 1994
+        },
+        "passage_hit@20": {
+          "mean": 0.1795,
+          "ci_low": 0.1625,
+          "ci_high": 0.1966,
+          "n": 1994
+        },
+        "passage_mrr@10": {
+          "mean": 0.0556,
+          "ci_low": 0.0473,
+          "ci_high": 0.0639,
+          "n": 1994
+        },
+        "future_share@10": {
+          "mean": 0.0162,
+          "ci_low": 0.0138,
+          "ci_high": 0.0187
+        },
+        "top1_is_future": {
+          "mean": 0.022,
+          "ci_low": 0.016,
+          "ci_high": 0.0285
+        }
+      },
+      "comparisons": {
+        "as-of vs no filter [recall@10]": {
+          "metric": "recall@10",
+          "diff": 0.0025,
+          "ci_low": 0.0005,
+          "ci_high": 0.005,
+          "p": 0.06489,
+          "n": 2000,
+          "p_holm": 0.12978
+        },
+        "as-of vs no filter [ndcg@10]": {
+          "metric": "ndcg@10",
+          "diff": 0.0016,
+          "ci_low": 0.0008,
+          "ci_high": 0.0025,
+          "p": 0.0001,
+          "n": 2000,
+          "p_holm": 0.0003
+        },
+        "as-of vs no filter [passage_hit@10]": {
+          "metric": "passage_hit@10",
+          "diff": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0,
+          "p": 1.0,
+          "n": 1994,
+          "p_holm": 1.0
+        }
+      }
+    }
+  },
+  "outdated_authority": {
+    "n": 2000,
+    "k": 10,
+    "treatment_table_cases_in_corpus": 9,
+    "queries_with_case_already_overruled_in_top_k": {
+      "mean": 0.013,
+      "ci_low": 0.0085,
+      "ci_high": 0.018
+    },
+    "queries_with_case_overruled_later_in_top_k": {
+      "mean": 0.006,
+      "ci_low": 0.003,
+      "ci_high": 0.0095
+    },
+    "gold_case_already_overruled_when_quoted": 12,
+    "gold_case_overruled_after_query_date": 7,
+    "most_frequent_already_overruled": [
+      [
+        "Saucier v. Katz, 533 U.S. 194 (2001)",
+        19
+      ],
+      [
+        "Ohio v. Roberts, 448 U.S. 56 (1980)",
+        3
+      ],
+      [
+        "Conley v. Gibson, 355 U.S. 41 (1957)",
+        2
+      ],
+      [
+        "Bowers v. Hardwick, 478 U.S. 186 (1986)",
+        1
+      ],
+      [
+        "Olmstead v. United States, 277 U.S. 438 (1928)",
+        1
+      ]
+    ]
+  }
+}

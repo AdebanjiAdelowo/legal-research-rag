@@ -114,13 +114,14 @@ class Bench:
         tag = name if name != "bm25" else f"bm25-k{self.bm25.k1}-b{self.bm25.b}"
         path = self._cache_file(tag, texts, f"{masks_key}|{depth}")
         if cache and path.exists():
-            z = np.load(path)
-            lengths = z["lengths"]
+            # Read each array once: indexing an NpzFile re-reads the whole member from
+            # disk, and a slice of it would keep that full copy alive per query.
+            with np.load(path) as z:
+                idx, scores, lengths = z["idx"], z["scores"], z["lengths"]
+                seconds = float(z["seconds_per_query"])
             offsets = np.concatenate([[0], np.cumsum(lengths)])
-            rankings = [
-                Ranking(z["idx"][a:b], z["scores"][a:b]) for a, b in itertools.pairwise(offsets)
-            ]
-            return Run(name, rankings, float(z["seconds_per_query"]))
+            rankings = [Ranking(idx[a:b], scores[a:b]) for a, b in itertools.pairwise(offsets)]
+            return Run(name, rankings, seconds)
 
         start = time.perf_counter()
         rankings: list[Ranking] = []
