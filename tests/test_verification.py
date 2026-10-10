@@ -154,3 +154,31 @@ def test_windows_include_whole_passage_first():
     text = "One is here. Two is here. Three is here. Four is here. Five is here."
     w = windows(text)
     assert w[0] == text and len(w) > 1 and all(len(x) <= len(text) for x in w)
+
+
+def test_citation_inside_the_cited_passage_is_relayed_not_hallucinated():
+    from legalrag.rag.types import Statement
+    from legalrag.verify.verifier import summarise
+
+    p = Pipeline.demo()
+    evidence = p.answer("certiorari to reconsider the mandatory sequence announced").evidence
+    label = next(e.label for e in evidence if "9992 U.S. 194" in e.text)
+    # The passage itself cites 9992 U.S. 194; the statement repeats the court's sentence.
+    relayed = Statement(
+        T.REASONING,
+        "We granted certiorari to reconsider the mandatory sequence announced in Elm Street Tenants v. Farrow, 9992 U.S. 194.",
+        [label],
+    )
+    checks = p.verifier.check_statements([relayed], evidence)
+    reporter = next(c for c in checks[0].citations if c.kind == "reporter")
+    assert reporter.in_passage and not reporter.problems
+    assert checks[0].status == "verified"
+    assert summarise(checks)["hallucinated_citations"] == 0
+
+
+def test_same_citation_against_a_passage_that_lacks_it_is_still_flagged():
+    answer = run(TRUE.replace(" [E1]", " as in 9996 U.S. 555. [E1]"))
+    reporter = next(
+        c for c in answer.statements[0].verification["citations"] if c["kind"] == "reporter"
+    )
+    assert reporter["in_passage"] is False and answer.verification["hallucinated_citations"] == 1

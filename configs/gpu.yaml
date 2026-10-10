@@ -1,4 +1,6 @@
-# GPU configuration, intended for the Kaggle runner (kaggle/README.md).
+# GPU configuration, intended for the Kaggle runner (kaggle/README.md). The model
+# choices here have not been evaluated; the runner produces the results that would
+# justify or change them.
 # Needs: legalrag index modernbert-legal
 corpus: full
 scheme: section220

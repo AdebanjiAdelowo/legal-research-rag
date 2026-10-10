@@ -1,0 +1,111 @@
+{
+  "created": "2026-10-10T18:07:55+0200",
+  "config": {
+    "experiment": "systems",
+    "n_queries": 200,
+    "encoder": "bge-small",
+    "reranker": "minilm-l6",
+    "judge": "nli-xsmall"
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "55c2de017ea21d69c45cc03ee249ccf714df9e9c",
+    "dirty_paths": [
+      "onfigs/gpu.yaml",
+      "configs/local_neural.yaml",
+      "results/rag/",
+      "results/verification/citation_checker_nli-xsmall.json"
+    ]
+  },
+  "versions": {
+    "python": "3.12.2",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "device": "mps"
+  },
+  "stages": {
+    "bm25_retrieval": {
+      "mean_ms": 3.55,
+      "p50_ms": 3.56,
+      "p95_ms": 5.13,
+      "n": 200
+    },
+    "dense_query_encoding": {
+      "mean_ms": 10.22,
+      "p50_ms": 9.38,
+      "p95_ms": 13.16,
+      "n": 200
+    },
+    "dense_search_exact": {
+      "mean_ms": 5.06,
+      "p50_ms": 5.03,
+      "p95_ms": 5.74,
+      "n": 200
+    },
+    "rank_fusion": {
+      "mean_ms": 0.1,
+      "p50_ms": 0.1,
+      "p95_ms": 0.11,
+      "n": 200
+    },
+    "reranking_top50": {
+      "mean_ms": 264.06,
+      "p50_ms": 258.04,
+      "p95_ms": 304.59,
+      "n": 200,
+      "model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "device": "mps"
+    },
+    "evidence_selection": {
+      "mean_ms": 0.24,
+      "p50_ms": 0.16,
+      "p95_ms": 0.76,
+      "n": 200
+    },
+    "generation_extractive": {
+      "mean_ms": 0.91,
+      "p50_ms": 0.9,
+      "p95_ms": 1.13,
+      "n": 200
+    },
+    "citation_verification[nli:cross-encoder/nli-deberta-v3-xsmall]": {
+      "mean_ms": 807.39,
+      "p50_ms": 755.96,
+      "p95_ms": 1411.29,
+      "n": 200
+    }
+  },
+  "indexes": {
+    "bm25": {
+      "disk_mb": 38.5,
+      "build": null
+    },
+    "dense-bge-small": {
+      "disk_mb": 170.9,
+      "build": {
+        "encode_seconds": 1236.8,
+        "docs_per_second": 179.9,
+        "docs_encoded_this_run": 222520,
+        "device": "mps",
+        "max_tokens": 512
+      }
+    }
+  },
+  "storage_mb": {
+    "raw_opinions": 311.5,
+    "processed": 1281.9,
+    "indexes": 560.8
+  },
+  "corpus": {
+    "cases": 4940,
+    "chunks": 222520
+  },
+  "peak_resident_memory_gb": 2.54
+}

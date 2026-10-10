@@ -1,17 +1,17 @@
-# Laptop configuration with small models (about 1.3 GB of weights in total, all
-# under 500 MB except the entailment judge at about 740 MB).
-# Needs: legalrag index bge-small
+# Laptop configuration with small models, set from the measured results:
+# score fusion at the development-tuned weight, no reranker (the small web-trained
+# cross-encoder lowered every metric, see results/rerank/), and the small entailment
+# judge, which had the best accuracy of the three validated.
+# Needs: legalrag index bge-small   (133 MB model, 171 MB index)
 corpus: full
 scheme: section220
 retriever: hybrid
 encoder: bge-small
-fusion: rrf
-rrf_k: 60
+fusion: score
+alpha_bm25: 0.7
 bm25_k1: 1.6
 bm25_b: 0.75
-reranker: minilm-l6
-rerank_top_n: 50
 evidence_k: 5
 generator: extractive
-judge: nli-base
+judge: nli-xsmall
 verify: flag

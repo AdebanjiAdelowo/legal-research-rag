@@ -135,9 +135,9 @@ def _detected(kind: str, check) -> bool:
     cites = check.citations
     reporters = [c for c in cites if c.kind == "reporter"]
     if kind == "fabricated_citation":
-        return any(c.exists is False for c in reporters)
+        return any(c.exists is False and not c.in_passage for c in reporters)
     if kind == "real_but_unretrieved":
-        return any(c.exists and not c.in_evidence for c in reporters)
+        return any(c.exists and not c.in_evidence and not c.in_passage for c in reporters)
     if kind == "wrong_name":
         return any(c.name_matches is False for c in reporters)
     if kind == "marker_out_of_range":

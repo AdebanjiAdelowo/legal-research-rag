@@ -9,7 +9,9 @@ separate so that passing one is never mistaken for passing another:
    it; the case may exist. A citation in a reporter the parser does not know is
    reported as unresolvable.
 3. **Provenance.** A citation that resolves to a corpus case which was *not* among
-   the supplied passages came from the model's memory, not from the evidence.
+   the supplied passages came from the model's memory, not from the evidence. The
+   exception is a citation that appears in the cited passage itself: the court wrote
+   it, and a statement relaying it is not inventing anything.
 4. **Name agreement.** ``Smith v. Jones, 410 U.S. 113`` where 410 U.S. 113 is a
    different case.
 5. **Quotation fidelity.** Text in quotation marks must occur in a cited passage.
@@ -95,6 +97,9 @@ class CitationCheck:
     exists: bool | None  # None: cannot be resolved against the corpus
     in_evidence: bool
     name_matches: bool | None = None
+    # The citation occurs in the text of a passage the statement cites: the opinion
+    # itself cites that case, and the statement is relaying it.
+    in_passage: bool = False
     resolves_to: str = ""
     support: str = ""  # supported | unsupported | contradicted | "" when not judged
     support_score: float | None = None
@@ -112,15 +117,29 @@ class StatementCheck:
 
 
 def _check_reporter_citations(
-    text: str, evidence: list[Evidence], index: CitationIndex
+    text: str, evidence: list[Evidence], index: CitationIndex, cited_text: str = ""
 ) -> list[CitationCheck]:
+    """Check reporter citations written into a statement.
+
+    A citation that also appears in ``cited_text``, the passages the statement
+    cites, was written by the court in that passage. It is recorded as relayed from
+    the evidence and raises no flag: the corpus not holding the case it points to
+    is no fault of the statement.
+    """
     out = []
     evidence_cases = {e.case_id for e in evidence}
+    relayed = {c.key for c in find_citations(cited_text) if c.key}
     for c in find_citations(text):
         if c.is_short_form:
             continue
         check = CitationCheck("reporter", c.raw, None, False)
-        if c.reporter not in REPORTERS:
+        if c.key in relayed:
+            case = index.resolve(c.key) if c.reporter in REPORTERS else None
+            check.in_passage = True
+            check.exists = (case is not None) if c.reporter in REPORTERS else None
+            check.in_evidence = True
+            check.resolves_to = case.bluebook() if case else ""
+        elif c.reporter not in REPORTERS:
             check.problems.append("reporter not recognised; cannot be checked")
         else:
             case = index.resolve(c.key)
@@ -190,9 +209,8 @@ class CitationVerifier:
                     )
                 if s.type in T.CITABLE:
                     pending.append((i, len(cites) - 1, s.text, e.text))
-            cites += _check_reporter_citations(s.text, evidence, self.index)
-
             cited_text = " ".join(by_label[c].text for c in s.citations if c in by_label)
+            cites += _check_reporter_citations(s.text, evidence, self.index, cited_text)
             missing = [
                 q
                 for q in _QUOTE.findall(s.text)
@@ -224,8 +242,9 @@ class CitationVerifier:
                 continue
             markers = [c for c in check.citations if c.kind == "marker" and c.exists]
             bad_reporter = any(
-                c.kind == "reporter" and (c.exists is False or c.name_matches is False
-                                          or (c.exists and not c.in_evidence))
+                c.kind == "reporter" and not c.in_passage
+                and (c.exists is False or c.name_matches is False
+                     or (c.exists and not c.in_evidence))
                 for c in check.citations
             )  # fmt: skip
             if not markers:
@@ -306,7 +325,11 @@ def summarise(checks: list[StatementCheck]) -> dict:
     all_cites = [x for c in checks for x in c.citations]
     hallucinated = sum(
         (x.kind == "marker" and not x.exists)
-        or (x.kind == "reporter" and (x.exists is False or (x.exists and not x.in_evidence)))
+        or (
+            x.kind == "reporter"
+            and not x.in_passage
+            and (x.exists is False or (x.exists and not x.in_evidence))
+        )
         for x in all_cites
     )
     recall_hits = sum(

@@ -1,0 +1,349 @@
+{
+  "created": "2026-10-10T18:03:55+0200",
+  "config": {
+    "experiment": "rag",
+    "generator": "extractive",
+    "retriever": "bm25",
+    "bm25": {
+      "k1": 1.6,
+      "b": 0.75
+    },
+    "evidence_k": 5,
+    "eval_judge": "nli:cross-encoder/nli-deberta-v3-xsmall",
+    "filter_judge": "lexical-containment",
+    "n_queries": 300
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "55c2de017ea21d69c45cc03ee249ccf714df9e9c",
+    "dirty_paths": [
+      "onfigs/gpu.yaml",
+      "configs/local_neural.yaml",
+      "results/verification/citation_checker_nli-xsmall.json"
+    ]
+  },
+  "versions": {
+    "python": "3.12.2",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "device": "mps"
+  },
+  "conditions": {
+    "normal": {
+      "verification_off": {
+        "answers": 300,
+        "abstained": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_in_evidence": {
+          "value": 0.1867,
+          "ci_low": 0.1466,
+          "ci_high": 0.2346,
+          "n": 300
+        },
+        "gold_passage_in_evidence": {
+          "value": 0.09,
+          "ci_low": 0.0626,
+          "ci_high": 0.1278,
+          "n": 300
+        },
+        "statements_per_answer": {
+          "value": 5.8233,
+          "ci_low": 5.7567,
+          "ci_high": 5.8833,
+          "n": 300
+        },
+        "citation_precision": {
+          "value": 0.8003,
+          "ci_low": 0.7769,
+          "ci_high": 0.8239,
+          "n": 1447
+        },
+        "citation_recall": {
+          "value": 0.8003,
+          "ci_low": 0.7769,
+          "ci_high": 0.8239,
+          "n": 1447
+        },
+        "unsupported_claim_rate": {
+          "value": 0.1997,
+          "ci_low": 0.1761,
+          "ci_high": 0.2231,
+          "n": 1447
+        },
+        "hallucinated_citation_rate": {
+          "value": 0.1367,
+          "ci_low": 0.1024,
+          "ci_high": 0.1802,
+          "n": 300
+        },
+        "gold_case_cited": {
+          "value": 0.1867,
+          "ci_low": 0.1466,
+          "ci_high": 0.2346,
+          "n": 300
+        },
+        "gold_passage_cited": {
+          "value": 0.09,
+          "ci_low": 0.0626,
+          "ci_high": 0.1278,
+          "n": 300
+        },
+        "gold_passage_cited_and_supported": {
+          "value": 0.0733,
+          "ci_low": 0.0489,
+          "ci_high": 0.1085,
+          "n": 300
+        },
+        "gold_quote_coverage": {
+          "value": 0.4862,
+          "ci_low": 0.4571,
+          "ci_high": 0.5158,
+          "n": 300
+        }
+      },
+      "verification_strict": {
+        "answers": 300,
+        "abstained": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_in_evidence": {
+          "value": 0.1867,
+          "ci_low": 0.1466,
+          "ci_high": 0.2346,
+          "n": 300
+        },
+        "gold_passage_in_evidence": {
+          "value": 0.09,
+          "ci_low": 0.0626,
+          "ci_high": 0.1278,
+          "n": 300
+        },
+        "statements_per_answer": {
+          "value": 5.6467,
+          "ci_low": 5.5633,
+          "ci_high": 5.7267,
+          "n": 300
+        },
+        "citation_precision": {
+          "value": 0.802,
+          "ci_low": 0.779,
+          "ci_high": 0.8254,
+          "n": 1394
+        },
+        "citation_recall": {
+          "value": 0.802,
+          "ci_low": 0.779,
+          "ci_high": 0.8254,
+          "n": 1394
+        },
+        "unsupported_claim_rate": {
+          "value": 0.198,
+          "ci_low": 0.1746,
+          "ci_high": 0.221,
+          "n": 1394
+        },
+        "hallucinated_citation_rate": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_case_cited": {
+          "value": 0.1767,
+          "ci_low": 0.1377,
+          "ci_high": 0.2238,
+          "n": 300
+        },
+        "gold_passage_cited": {
+          "value": 0.0867,
+          "ci_low": 0.0598,
+          "ci_high": 0.124,
+          "n": 300
+        },
+        "gold_passage_cited_and_supported": {
+          "value": 0.07,
+          "ci_low": 0.0462,
+          "ci_high": 0.1046,
+          "n": 300
+        },
+        "gold_quote_coverage": {
+          "value": 0.4801,
+          "ci_low": 0.4509,
+          "ci_high": 0.5093,
+          "n": 300
+        }
+      }
+    },
+    "withheld": {
+      "verification_off": {
+        "answers": 300,
+        "abstained": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_in_evidence": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_passage_in_evidence": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "statements_per_answer": {
+          "value": 5.8133,
+          "ci_low": 5.7433,
+          "ci_high": 5.8733,
+          "n": 300
+        },
+        "citation_precision": {
+          "value": 0.7999,
+          "ci_low": 0.777,
+          "ci_high": 0.823,
+          "n": 1444
+        },
+        "citation_recall": {
+          "value": 0.7999,
+          "ci_low": 0.777,
+          "ci_high": 0.823,
+          "n": 1444
+        },
+        "unsupported_claim_rate": {
+          "value": 0.2001,
+          "ci_low": 0.177,
+          "ci_high": 0.223,
+          "n": 1444
+        },
+        "hallucinated_citation_rate": {
+          "value": 0.1467,
+          "ci_low": 0.1111,
+          "ci_high": 0.1912,
+          "n": 300
+        },
+        "gold_case_cited": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_passage_cited": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_passage_cited_and_supported": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_quote_coverage": {
+          "value": 0.4855,
+          "ci_low": 0.4567,
+          "ci_high": 0.5151,
+          "n": 300
+        }
+      },
+      "verification_strict": {
+        "answers": 300,
+        "abstained": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_in_evidence": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_passage_in_evidence": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "statements_per_answer": {
+          "value": 5.6233,
+          "ci_low": 5.5333,
+          "ci_high": 5.7067,
+          "n": 300
+        },
+        "citation_precision": {
+          "value": 0.8003,
+          "ci_low": 0.7772,
+          "ci_high": 0.8244,
+          "n": 1387
+        },
+        "citation_recall": {
+          "value": 0.8003,
+          "ci_low": 0.7772,
+          "ci_high": 0.8244,
+          "n": 1387
+        },
+        "unsupported_claim_rate": {
+          "value": 0.1997,
+          "ci_low": 0.1756,
+          "ci_high": 0.2228,
+          "n": 1387
+        },
+        "hallucinated_citation_rate": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_case_cited": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_passage_cited": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_passage_cited_and_supported": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126,
+          "n": 300
+        },
+        "gold_quote_coverage": {
+          "value": 0.4797,
+          "ci_low": 0.4507,
+          "ci_high": 0.5086,
+          "n": 300
+        }
+      }
+    }
+  },
+  "generation_seconds": {
+    "mean": 0.0011,
+    "p50": 0.001,
+    "p95": 0.0016
+  }
+}

@@ -361,7 +361,6 @@ def rag() -> str:
         ("hallucinated_citation_rate", "Answers with a hallucinated citation"),
         ("gold_case_cited", "Cites the quoted case"),
         ("gold_passage_cited", "Cites the quoted passage"),
-        ("gold_quote_coverage", "Quotation words reproduced"),
     ]
     out = []
     for f in files:
