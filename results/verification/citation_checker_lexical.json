@@ -1,0 +1,90 @@
+{
+  "created": "2026-10-10T12:43:04+0200",
+  "config": {
+    "experiment": "citation_checker",
+    "judge": "lexical-containment",
+    "generator": "extractive",
+    "n_queries": 300,
+    "seed": 0
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "0134d02664df14e9d5758118008376e804dbdc46",
+    "dirty_paths": [
+      "results/abstention/"
+    ]
+  },
+  "versions": {
+    "python": "3.12.2",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "device": "mps"
+  },
+  "false_alarm_on_clean_statements": {
+    "n": 1441,
+    "rate": 0.0389,
+    "ci_low": 0.03,
+    "ci_high": 0.0501
+  },
+  "detection": {
+    "exact_lookup_checks": {
+      "fabricated_citation": {
+        "n": 1441,
+        "rate": 1.0,
+        "ci_low": 0.9973,
+        "ci_high": 1.0
+      },
+      "real_but_unretrieved": {
+        "n": 1441,
+        "rate": 1.0,
+        "ci_low": 0.9973,
+        "ci_high": 1.0
+      },
+      "wrong_name": {
+        "n": 1441,
+        "rate": 1.0,
+        "ci_low": 0.9973,
+        "ci_high": 1.0
+      },
+      "marker_out_of_range": {
+        "n": 1441,
+        "rate": 1.0,
+        "ci_low": 0.9973,
+        "ci_high": 1.0
+      },
+      "altered_quotation": {
+        "n": 1427,
+        "rate": 0.9418,
+        "ci_low": 0.9285,
+        "ci_high": 0.9528
+      }
+    },
+    "support_judge_checks": {
+      "swapped_marker": {
+        "n": 1441,
+        "rate": 0.7647,
+        "ci_low": 0.7422,
+        "ci_high": 0.7859
+      },
+      "swapped_claim": {
+        "n": 1441,
+        "rate": 1.0,
+        "ci_low": 0.9973,
+        "ci_high": 1.0
+      },
+      "negated": {
+        "n": 976,
+        "rate": 0.0502,
+        "ci_low": 0.0382,
+        "ci_high": 0.0658
+      }
+    }
+  }
+}

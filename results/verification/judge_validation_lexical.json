@@ -1,0 +1,68 @@
+{
+  "created": "2026-10-10T12:43:09+0200",
+  "config": {
+    "experiment": "judge_validation",
+    "n_per_kind": 300,
+    "seed": 0
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "0134d02664df14e9d5758118008376e804dbdc46",
+    "dirty_paths": [
+      "results/abstention/",
+      "results/verification/"
+    ]
+  },
+  "versions": {
+    "python": "3.12.2",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "device": "mps"
+  },
+  "judges": {
+    "lexical-containment": {
+      "threshold": 0.6,
+      "accept_rate": {
+        "supported": {
+          "n": 300,
+          "accepted": 0.9867,
+          "ci_low": 0.9662,
+          "ci_high": 0.9948
+        },
+        "other_case": {
+          "n": 300,
+          "accepted": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.0126
+        },
+        "same_case": {
+          "n": 300,
+          "accepted": 0.04,
+          "ci_low": 0.023,
+          "ci_high": 0.0686
+        },
+        "negated": {
+          "n": 300,
+          "accepted": 0.9867,
+          "ci_low": 0.9662,
+          "ci_high": 0.9948
+        }
+      },
+      "recall_on_supported": 0.9867,
+      "precision_of_supported_label": 0.4901,
+      "accuracy": 0.74,
+      "auroc": {
+        "other_case": 0.9996,
+        "same_case": 0.9954,
+        "negated": 0.5
+      }
+    }
+  }
+}
