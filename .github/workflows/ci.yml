@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      # No neural extras: the suite must pass with numpy and scipy alone.
+      - run: uv sync --frozen --extra app --extra dev
+      - run: uv run ruff check src tests app
+      - run: uv run ruff format --check src tests app
+      - run: uv run pytest -q
+      - name: Pipeline answers a question on the synthetic corpus
+        run: LEGALRAG_CONFIG=configs/demo.yaml uv run legalrag ask "When does a government official lose qualified immunity?"
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t legal-research-rag .
+      - name: API answers on the synthetic corpus
+        run: |
+          docker run -d --name api -p 8000:8000 legal-research-rag
+          for i in $(seq 1 30); do curl -sf localhost:8000/health && break || sleep 1; done
+          curl -sf localhost:8000/health | grep -q '"demo_corpus":true'
+          curl -sf -X POST localhost:8000/answer -H 'content-type: application/json' \
+            -d '{"question": "What must a plaintiff show to have standing?"}' | grep -q '"abstained":false'
+          docker logs api

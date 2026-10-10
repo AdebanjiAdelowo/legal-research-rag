@@ -1,0 +1,16 @@
+# GPU configuration, intended for the Kaggle runner (kaggle/README.md).
+# Needs: legalrag index modernbert-legal
+corpus: full
+scheme: section220
+retriever: hybrid
+encoder: modernbert-legal
+fusion: rrf
+rrf_k: 60
+bm25_k1: 1.6
+bm25_b: 0.75
+reranker: bge-reranker-v2-m3
+rerank_top_n: 100
+evidence_k: 5
+generator: hf:Qwen/Qwen2.5-7B-Instruct
+judge: nli-large
+verify: strict

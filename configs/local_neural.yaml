@@ -1,0 +1,17 @@
+# Laptop configuration with small models (about 1.3 GB of weights in total, all
+# under 500 MB except the entailment judge at about 740 MB).
+# Needs: legalrag index bge-small
+corpus: full
+scheme: section220
+retriever: hybrid
+encoder: bge-small
+fusion: rrf
+rrf_k: 60
+bm25_k1: 1.6
+bm25_b: 0.75
+reranker: minilm-l6
+rerank_top_n: 50
+evidence_k: 5
+generator: extractive
+judge: nli-base
+verify: flag

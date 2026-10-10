@@ -190,3 +190,12 @@ def test_config_rejects_unknown_keys(tmp_path):
         PipelineConfig.load(path)
     path.write_text("corpus: demo\nevidence_k: 3\n")
     assert PipelineConfig.load(path).evidence_k == 3
+
+
+def test_extracted_sentences_do_not_carry_headings(pipeline):
+    answer = pipeline.answer("When does a government official lose qualified immunity?")
+    quoted = [s.text for s in answer.statements if s.quoted]
+    assert quoted and not any(t.split()[0] in ("I", "II", "III", "B") for t in quoted)
+    kinds = {s.text.split()[0]: s.type for s in answer.statements if s.quoted}
+    assert kinds["A"] == T.REASONING and kinds["Judges"] == T.REASONING
+    assert kinds["Corvid"] == T.FACT

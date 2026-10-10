@@ -1,0 +1,12 @@
+# Default: no model download, no network. BM25 parameters are the dev-tuned values
+# from results/retrieval/retrieval_section220.json.
+corpus: auto            # full corpus when built, synthetic demonstration corpus otherwise
+scheme: section220
+retriever: bm25
+bm25_k1: 1.6
+bm25_b: 0.75
+evidence_k: 5
+per_case: 2
+generator: extractive
+judge: lexical
+verify: flag

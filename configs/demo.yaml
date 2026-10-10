@@ -1,0 +1,6 @@
+# Synthetic corpus only. Used by the container image and by continuous integration.
+corpus: demo
+retriever: bm25
+generator: extractive
+judge: lexical
+verify: flag

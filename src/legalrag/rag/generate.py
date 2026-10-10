@@ -21,6 +21,7 @@ from __future__ import annotations
 import re
 from typing import Protocol
 
+from legalrag.data.cap import heading_level
 from legalrag.data.chunking import split_sentences
 from legalrag.index.bm25 import tokenize
 from legalrag.rag import types as T
@@ -55,9 +56,9 @@ _PROVISION = re.compile(
     re.IGNORECASE,
 )
 _FACT = re.compile(
-    r"\b(?:sued|filed|alleg(?:ed|es)|was (?:arrested|convicted|charged|indicted|"
+    r"\b(?:sued|filed|alleg(?:ed|es) that|was (?:arrested|convicted|charged|indicted|"
     r"sentenced|employed|terminated|injured)|brought (?:this|an|suit)|moved (?:for|to)|"
-    r"appeal(?:s|ed)|petition(?:er|ed)|plaintiff(?:s)? (?:was|were|claimed)|"
+    r"appealed|(?<!of )appeals (?:from|the)|petitioned|plaintiff(?:s)? (?:was|were|claimed)|"
     r"defendant(?:s)? (?:was|were)|the district court (?:granted|denied|dismissed|held)|"
     r"jury (?:found|returned)|on (?:January|February|March|April|May|June|July|August|"
     r"September|October|November|December) \d)",
@@ -175,7 +176,9 @@ class ExtractiveGenerator:
         statements: list[Statement] = []
         for e in evidence:
             scored = []
-            for sentence in split_sentences(e.text.replace("\n", " ")):
+            # Paragraph by paragraph, so a section heading is never glued to a sentence.
+            lines = [ln for ln in e.text.split("\n") if ln.strip() and not heading_level(ln)]
+            for sentence in (x for ln in lines for x in split_sentences(ln)):
                 words = sentence.split()
                 if not 8 <= len(words) <= 90:
                     continue
