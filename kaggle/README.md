@@ -163,7 +163,7 @@ python scripts/make_results_tables.py
 ```
 
 The bundle contains exactly what Git tracks: code, documentation and aggregate result
-files, about 2 MB. The runner clones it, checks out the hash in `COMMIT`, verifies the
+files, under 1 MB. The runner clones it, checks out the hash in `COMMIT`, verifies the
 checkout is that commit and is clean, and then hands over to the copy of itself inside
 the checkout, so the code that runs is the committed code.
 
@@ -189,7 +189,7 @@ no remote configured afterwards. This path is implemented but untested.
 | Needs a GitHub repository | no | yes |
 | Secret required | none | `GITHUB_TOKEN` in Kaggle Secrets |
 | What leaves the machine | a private Kaggle dataset with the tracked files | a push to a private repository |
-| Tested locally | staging, cloning the bundle and commit verification | precondition check only |
+| Tested locally | staging, cloning the bundle, commit verification and the hand-over to the committed runner, up to the machine preflight | precondition check only |
 
 ## Other plans
 
