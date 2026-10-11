@@ -1,0 +1,70 @@
+{
+  "plan": "encoders",
+  "source": "bundle",
+  "commit": "9ecd6f70f4f1b9e9bb6b69e209e45235537acd73",
+  "runner_sha256": "0c92272066f1c96c29b50c18c820124a8a91d027562dac018ee3ebd916afa43c",
+  "machine": {
+    "work_directory": "/tmp/legalrag",
+    "free_disk_gb": 1148.8,
+    "memory_limit_gb": 27,
+    "gpu": "Tesla T4",
+    "gpu_memory_gb": 15.0,
+    "driver": "580.178.04",
+    "gpu_count": 2
+  },
+  "torch": "2.14.1+cu130 13.0 True",
+  "uv_lock_sha256": "c4985ebc054cc34f2ed1abc72b245f13f907b7ae9be4a6361290600e874eb0dc",
+  "data_source": "rebuilt from the pinned LePaRD revision and the Caselaw Access Project",
+  "steps": [
+    {
+      "step": "install-uv",
+      "seconds": 7.1,
+      "exit": 0
+    },
+    {
+      "step": "uv-sync",
+      "seconds": 71.7,
+      "exit": 0
+    },
+    {
+      "step": "fetch",
+      "seconds": 187.6,
+      "exit": 0
+    },
+    {
+      "step": "build",
+      "seconds": 323.1,
+      "exit": 0
+    },
+    {
+      "step": "fingerprint",
+      "seconds": 5.0,
+      "exit": 0
+    },
+    {
+      "step": "index-bm25",
+      "seconds": 54.7,
+      "exit": 0
+    },
+    {
+      "step": "index-modernbert-general-b128",
+      "seconds": 2756.7,
+      "exit": 0
+    },
+    {
+      "step": "index-modernbert-legal-b128",
+      "seconds": 2759.5,
+      "exit": 0
+    },
+    {
+      "step": "experiment-encoders",
+      "seconds": 143.5,
+      "exit": 0
+    }
+  ],
+  "total_seconds": 6313.8,
+  "kaggle": {
+    "KAGGLE_KERNEL_INTEGRATIONS": "",
+    "KAGGLE_KERNEL_RUN_TYPE": "Batch"
+  }
+}

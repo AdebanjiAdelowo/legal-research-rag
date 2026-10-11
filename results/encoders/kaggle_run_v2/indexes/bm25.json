@@ -1,0 +1,8 @@
+{
+  "corpus_version": "c1b900e309df",
+  "scheme": "section220",
+  "chunks": 222520,
+  "kind": "bm25",
+  "k1": 1.2,
+  "b": 0.75
+}

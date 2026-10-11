@@ -1,0 +1,1019 @@
+{
+  "created": "2026-10-11T08:46:35+0000",
+  "config": {
+    "experiment": "encoders",
+    "general": "modernbert-general",
+    "legal": "modernbert-legal",
+    "scheme": "section220",
+    "bm25": {
+      "k1": 1.6,
+      "b": 0.75
+    },
+    "n_dev": 800,
+    "n_test": 2000,
+    "chunks": 222520,
+    "tuned_on": "dev",
+    "reported_on": "test"
+  },
+  "corpus_version": "c1b900e309df",
+  "git": {
+    "commit": "9ecd6f70f4f1b9e9bb6b69e209e45235537acd73",
+    "dirty_paths": []
+  },
+  "versions": {
+    "python": "3.13.15",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "torch": "2.14.1",
+    "sentence-transformers": "6.1.0",
+    "transformers": "5.19.0"
+  },
+  "device": {
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "device": "cuda",
+    "gpu": "Tesla T4"
+  },
+  "per_query_differences": {
+    "dense": {
+      "ndcg@10": {
+        "n": 2000,
+        "legal_better": 344,
+        "tied": 1405,
+        "general_better": 251,
+        "mean": 0.0161,
+        "std": 0.2157,
+        "quantiles": {
+          "p05": -0.3562,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.3869
+        }
+      },
+      "mrr@10": {
+        "n": 2000,
+        "legal_better": 344,
+        "tied": 1405,
+        "general_better": 251,
+        "mean": 0.0094,
+        "std": 0.2104,
+        "quantiles": {
+          "p05": -0.25,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.3
+        }
+      },
+      "recall@1": {
+        "n": 2000,
+        "legal_better": 61,
+        "tied": 1876,
+        "general_better": 63,
+        "mean": -0.001,
+        "std": 0.2491,
+        "quantiles": {
+          "p05": 0.0,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.0
+        }
+      },
+      "recall@10": {
+        "n": 2000,
+        "legal_better": 179,
+        "tied": 1717,
+        "general_better": 104,
+        "mean": 0.0375,
+        "std": 0.3744,
+        "quantiles": {
+          "p05": -1.0,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 1.0
+        }
+      },
+      "recall@100": {
+        "n": 2000,
+        "legal_better": 200,
+        "tied": 1708,
+        "general_better": 92,
+        "mean": 0.054,
+        "std": 0.3784,
+        "quantiles": {
+          "p05": 0.0,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 1.0
+        }
+      },
+      "passage_hit@10": {
+        "n": 1994,
+        "legal_better": 68,
+        "tied": 1863,
+        "general_better": 63,
+        "mean": 0.0025,
+        "std": 0.2564,
+        "quantiles": {
+          "p05": 0.0,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.0
+        }
+      }
+    },
+    "hybrid": {
+      "ndcg@10": {
+        "n": 2000,
+        "legal_better": 257,
+        "tied": 1504,
+        "general_better": 239,
+        "mean": 0.0027,
+        "std": 0.1464,
+        "quantiles": {
+          "p05": -0.2891,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.301
+        }
+      },
+      "mrr@10": {
+        "n": 2000,
+        "legal_better": 257,
+        "tied": 1504,
+        "general_better": 239,
+        "mean": -0.0002,
+        "std": 0.1444,
+        "quantiles": {
+          "p05": -0.1667,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.1667
+        }
+      },
+      "recall@1": {
+        "n": 2000,
+        "legal_better": 30,
+        "tied": 1931,
+        "general_better": 39,
+        "mean": -0.0045,
+        "std": 0.1857,
+        "quantiles": {
+          "p05": 0.0,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.0
+        }
+      },
+      "recall@10": {
+        "n": 2000,
+        "legal_better": 94,
+        "tied": 1837,
+        "general_better": 69,
+        "mean": 0.0125,
+        "std": 0.2853,
+        "quantiles": {
+          "p05": 0.0,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.0
+        }
+      },
+      "recall@100": {
+        "n": 2000,
+        "legal_better": 88,
+        "tied": 1851,
+        "general_better": 61,
+        "mean": 0.0135,
+        "std": 0.2727,
+        "quantiles": {
+          "p05": 0.0,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.0
+        }
+      },
+      "passage_hit@10": {
+        "n": 1994,
+        "legal_better": 30,
+        "tied": 1923,
+        "general_better": 41,
+        "mean": -0.0055,
+        "std": 0.1887,
+        "quantiles": {
+          "p05": 0.0,
+          "p25": 0.0,
+          "p50": 0.0,
+          "p75": 0.0,
+          "p95": 0.0
+        }
+      }
+    }
+  },
+  "identical_conditions": {
+    "corpus_version": "c1b900e309df",
+    "scheme": "section220",
+    "chunks": 222520,
+    "max_tokens": 512,
+    "precision": "float16",
+    "batch_size": 128,
+    "stored_dtype": "float16",
+    "normalised": true,
+    "device": "cuda",
+    "dev_queries": {
+      "count": 800,
+      "sha256": "0d19a5684dfc56a50d5d570233fbcb92a837932ab5455cdac440c8272618cb4c"
+    },
+    "test_queries": {
+      "count": 2000,
+      "sha256": "cacb1bf7bf6cb48cd121cad132ddffc342487dce21a964142d8029012ee349dc"
+    },
+    "ranking_depth": 1000,
+    "fusion_depth": 200,
+    "as_of_filter": true,
+    "relevance": "the case quoted by the citing court; paragraph labels by location",
+    "prefixes_equal": true
+  },
+  "tuned_on_dev": {
+    "modernbert-general": {
+      "dev_dense_ndcg@10": 0.1809,
+      "alpha_bm25": 0.6,
+      "dev_alpha_grid": {
+        "0.1": 0.1856,
+        "0.2": 0.1942,
+        "0.3": 0.2055,
+        "0.4": 0.2109,
+        "0.5": 0.2155,
+        "0.6": 0.2187,
+        "0.7": 0.2148,
+        "0.8": 0.2131,
+        "0.9": 0.2121
+      }
+    },
+    "modernbert-legal": {
+      "dev_dense_ndcg@10": 0.2046,
+      "alpha_bm25": 0.5,
+      "dev_alpha_grid": {
+        "0.1": 0.2108,
+        "0.2": 0.2167,
+        "0.3": 0.2217,
+        "0.4": 0.2249,
+        "0.5": 0.2264,
+        "0.6": 0.2258,
+        "0.7": 0.221,
+        "0.8": 0.2132,
+        "0.9": 0.2102
+      }
+    }
+  },
+  "encoders": {
+    "modernbert-general": {
+      "spec": {
+        "key": "modernbert-general",
+        "model": "nomic-ai/modernbert-embed-base",
+        "revision": "d556a88e332558790b210f7bdbe87da2fa94a8d8",
+        "domain": "general",
+        "query_prefix": "search_query: ",
+        "doc_prefix": "search_document: ",
+        "max_tokens": 512,
+        "note": "149M parameters, 768 dimensions, mean pooling. General-purpose parent of the legal model. Its card requires the search_query and search_document prefixes. It accepts 8,192 tokens; it is run at 512 to match the legal fine-tune."
+      },
+      "index_build": {
+        "encode_seconds": 2572.7,
+        "docs_per_second": 86.5,
+        "docs_encoded_this_run": 222520,
+        "docs_resumed_from_blocks": 0,
+        "device": "cuda",
+        "precision": "float16",
+        "batch_size": 128,
+        "max_tokens": 512,
+        "dimension": 768,
+        "stored_dtype": "float16",
+        "normalised": true,
+        "tokens": {
+          "median": 236,
+          "p95": 363,
+          "max": 883,
+          "passages_truncated": 373,
+          "share_truncated": 0.00168
+        },
+        "peak_gpu_memory": {
+          "allocated_mb": 1904.4,
+          "reserved_mb": 2300.0,
+          "gpu": "Tesla T4",
+          "gpu_total_mb": 14911.7
+        }
+      },
+      "storage": {
+        "passages": 222520,
+        "dimension": 768,
+        "dtype_on_disk": "float16",
+        "disk_mb": 326.0,
+        "memory_mb_float32_for_search": 651.9
+      },
+      "latency": {
+        "queries": 200,
+        "query_encoding": {
+          "mean_ms": 29.15,
+          "p50_ms": 29.15,
+          "p95_ms": 31.29
+        },
+        "exact_search": {
+          "mean_ms": 27.27,
+          "p50_ms": 27.02,
+          "p95_ms": 28.29
+        },
+        "search_backend": "numpy inner product on CPU over float32 embeddings",
+        "peak_gpu_memory_query_encoding": {
+          "allocated_mb": 306.1,
+          "reserved_mb": 1184.0,
+          "gpu": "Tesla T4",
+          "gpu_total_mb": 14911.7
+        }
+      }
+    },
+    "modernbert-legal": {
+      "spec": {
+        "key": "modernbert-legal",
+        "model": "freelawproject/modernbert-embed-base_finetune_512",
+        "revision": "04f0141fbc045122439d28d51ba670f3091e9ed8",
+        "domain": "legal",
+        "query_prefix": "search_query: ",
+        "doc_prefix": "search_document: ",
+        "max_tokens": 512,
+        "note": "Free Law Project fine-tune of nomic-ai/modernbert-embed-base on synthetic queries over U.S. court opinions (Free-Law-Project/opinions-synthetic-query-512). Same architecture, size, tokeniser, pooling and prefixes as its parent, so the pair isolates the effect of legal-domain fine-tuning. Fine-tuned at 512 tokens, which is the sequence limit used for both models here."
+      },
+      "index_build": {
+        "encode_seconds": 2581.8,
+        "docs_per_second": 86.2,
+        "docs_encoded_this_run": 222520,
+        "docs_resumed_from_blocks": 0,
+        "device": "cuda",
+        "precision": "float16",
+        "batch_size": 128,
+        "max_tokens": 512,
+        "dimension": 768,
+        "stored_dtype": "float16",
+        "normalised": true,
+        "tokens": {
+          "median": 236,
+          "p95": 363,
+          "max": 883,
+          "passages_truncated": 373,
+          "share_truncated": 0.00168
+        },
+        "peak_gpu_memory": {
+          "allocated_mb": 1904.4,
+          "reserved_mb": 2300.0,
+          "gpu": "Tesla T4",
+          "gpu_total_mb": 14911.7
+        }
+      },
+      "storage": {
+        "passages": 222520,
+        "dimension": 768,
+        "dtype_on_disk": "float16",
+        "disk_mb": 326.0,
+        "memory_mb_float32_for_search": 651.9
+      },
+      "latency": {
+        "queries": 200,
+        "query_encoding": {
+          "mean_ms": 30.24,
+          "p50_ms": 29.98,
+          "p95_ms": 33.1
+        },
+        "exact_search": {
+          "mean_ms": 26.8,
+          "p50_ms": 26.6,
+          "p95_ms": 27.7
+        },
+        "search_backend": "numpy inner product on CPU over float32 embeddings",
+        "peak_gpu_memory_query_encoding": {
+          "allocated_mb": 597.8,
+          "reserved_mb": 1332.0,
+          "gpu": "Tesla T4",
+          "gpu_total_mb": 14911.7
+        }
+      }
+    }
+  },
+  "systems": {
+    "bm25": {
+      "recall@1": {
+        "mean": 0.0725,
+        "ci_low": 0.0615,
+        "ci_high": 0.084,
+        "n": 2000
+      },
+      "recall@5": {
+        "mean": 0.2265,
+        "ci_low": 0.209,
+        "ci_high": 0.245,
+        "n": 2000
+      },
+      "recall@10": {
+        "mean": 0.3055,
+        "ci_low": 0.285,
+        "ci_high": 0.326,
+        "n": 2000
+      },
+      "recall@20": {
+        "mean": 0.4115,
+        "ci_low": 0.39,
+        "ci_high": 0.4335,
+        "n": 2000
+      },
+      "recall@100": {
+        "mean": 0.694,
+        "ci_low": 0.674,
+        "ci_high": 0.7145,
+        "n": 2000
+      },
+      "mrr@10": {
+        "mean": 0.1365,
+        "ci_low": 0.125,
+        "ci_high": 0.149,
+        "n": 2000
+      },
+      "ndcg@10": {
+        "mean": 0.1763,
+        "ci_low": 0.1634,
+        "ci_high": 0.1898,
+        "n": 2000
+      },
+      "precision@1": {
+        "mean": 0.0725,
+        "ci_low": 0.0615,
+        "ci_high": 0.084,
+        "n": 2000
+      },
+      "precision@5": {
+        "mean": 0.0453,
+        "ci_low": 0.0418,
+        "ci_high": 0.049,
+        "n": 2000
+      },
+      "precision@10": {
+        "mean": 0.0305,
+        "ci_low": 0.0285,
+        "ci_high": 0.0326,
+        "n": 2000
+      },
+      "passage_hit@1": {
+        "mean": 0.0286,
+        "ci_low": 0.0216,
+        "ci_high": 0.0361,
+        "n": 1994
+      },
+      "passage_hit@5": {
+        "mean": 0.0943,
+        "ci_low": 0.0807,
+        "ci_high": 0.1073,
+        "n": 1994
+      },
+      "passage_hit@10": {
+        "mean": 0.1269,
+        "ci_low": 0.1118,
+        "ci_high": 0.1419,
+        "n": 1994
+      },
+      "passage_hit@20": {
+        "mean": 0.181,
+        "ci_low": 0.164,
+        "ci_high": 0.1981,
+        "n": 1994
+      },
+      "passage_mrr@10": {
+        "mean": 0.056,
+        "ci_low": 0.0478,
+        "ci_high": 0.0646,
+        "n": 1994
+      }
+    },
+    "dense-modernbert-general": {
+      "recall@1": {
+        "mean": 0.0645,
+        "ci_low": 0.0545,
+        "ci_high": 0.0755,
+        "n": 2000
+      },
+      "recall@5": {
+        "mean": 0.188,
+        "ci_low": 0.171,
+        "ci_high": 0.206,
+        "n": 2000
+      },
+      "recall@10": {
+        "mean": 0.2745,
+        "ci_low": 0.255,
+        "ci_high": 0.295,
+        "n": 2000
+      },
+      "recall@20": {
+        "mean": 0.3785,
+        "ci_low": 0.3575,
+        "ci_high": 0.4015,
+        "n": 2000
+      },
+      "recall@100": {
+        "mean": 0.679,
+        "ci_low": 0.658,
+        "ci_high": 0.7,
+        "n": 2000
+      },
+      "mrr@10": {
+        "mean": 0.1193,
+        "ci_low": 0.1082,
+        "ci_high": 0.1315,
+        "n": 2000
+      },
+      "ndcg@10": {
+        "mean": 0.1555,
+        "ci_low": 0.143,
+        "ci_high": 0.1689,
+        "n": 2000
+      },
+      "precision@1": {
+        "mean": 0.0645,
+        "ci_low": 0.0545,
+        "ci_high": 0.0755,
+        "n": 2000
+      },
+      "precision@5": {
+        "mean": 0.0376,
+        "ci_low": 0.0342,
+        "ci_high": 0.0412,
+        "n": 2000
+      },
+      "precision@10": {
+        "mean": 0.0275,
+        "ci_low": 0.0255,
+        "ci_high": 0.0295,
+        "n": 2000
+      },
+      "passage_hit@1": {
+        "mean": 0.0201,
+        "ci_low": 0.0145,
+        "ci_high": 0.0261,
+        "n": 1994
+      },
+      "passage_hit@5": {
+        "mean": 0.0712,
+        "ci_low": 0.0597,
+        "ci_high": 0.0832,
+        "n": 1994
+      },
+      "passage_hit@10": {
+        "mean": 0.1078,
+        "ci_low": 0.0948,
+        "ci_high": 0.1219,
+        "n": 1994
+      },
+      "passage_hit@20": {
+        "mean": 0.1605,
+        "ci_low": 0.1449,
+        "ci_high": 0.177,
+        "n": 1994
+      },
+      "passage_mrr@10": {
+        "mean": 0.0428,
+        "ci_low": 0.036,
+        "ci_high": 0.0501,
+        "n": 1994
+      }
+    },
+    "hybrid-modernbert-general": {
+      "recall@1": {
+        "mean": 0.0815,
+        "ci_low": 0.0705,
+        "ci_high": 0.094,
+        "n": 2000
+      },
+      "recall@5": {
+        "mean": 0.233,
+        "ci_low": 0.2145,
+        "ci_high": 0.2525,
+        "n": 2000
+      },
+      "recall@10": {
+        "mean": 0.32,
+        "ci_low": 0.299,
+        "ci_high": 0.341,
+        "n": 2000
+      },
+      "recall@20": {
+        "mean": 0.4255,
+        "ci_low": 0.403,
+        "ci_high": 0.4475,
+        "n": 2000
+      },
+      "recall@100": {
+        "mean": 0.715,
+        "ci_low": 0.6955,
+        "ci_high": 0.7345,
+        "n": 2000
+      },
+      "mrr@10": {
+        "mean": 0.145,
+        "ci_low": 0.1324,
+        "ci_high": 0.1581,
+        "n": 2000
+      },
+      "ndcg@10": {
+        "mean": 0.1861,
+        "ci_low": 0.1721,
+        "ci_high": 0.2001,
+        "n": 2000
+      },
+      "precision@1": {
+        "mean": 0.0815,
+        "ci_low": 0.0705,
+        "ci_high": 0.094,
+        "n": 2000
+      },
+      "precision@5": {
+        "mean": 0.0466,
+        "ci_low": 0.0429,
+        "ci_high": 0.0505,
+        "n": 2000
+      },
+      "precision@10": {
+        "mean": 0.032,
+        "ci_low": 0.0299,
+        "ci_high": 0.0341,
+        "n": 2000
+      },
+      "passage_hit@1": {
+        "mean": 0.0366,
+        "ci_low": 0.0286,
+        "ci_high": 0.0446,
+        "n": 1994
+      },
+      "passage_hit@5": {
+        "mean": 0.0983,
+        "ci_low": 0.0853,
+        "ci_high": 0.1118,
+        "n": 1994
+      },
+      "passage_hit@10": {
+        "mean": 0.1454,
+        "ci_low": 0.1294,
+        "ci_high": 0.1615,
+        "n": 1994
+      },
+      "passage_hit@20": {
+        "mean": 0.1961,
+        "ci_low": 0.179,
+        "ci_high": 0.2146,
+        "n": 1994
+      },
+      "passage_mrr@10": {
+        "mean": 0.0634,
+        "ci_low": 0.0546,
+        "ci_high": 0.0724,
+        "n": 1994
+      }
+    },
+    "dense-modernbert-legal": {
+      "recall@1": {
+        "mean": 0.0635,
+        "ci_low": 0.053,
+        "ci_high": 0.0745,
+        "n": 2000
+      },
+      "recall@5": {
+        "mean": 0.2135,
+        "ci_low": 0.1955,
+        "ci_high": 0.232,
+        "n": 2000
+      },
+      "recall@10": {
+        "mean": 0.312,
+        "ci_low": 0.2925,
+        "ci_high": 0.333,
+        "n": 2000
+      },
+      "recall@20": {
+        "mean": 0.43,
+        "ci_low": 0.4085,
+        "ci_high": 0.4525,
+        "n": 2000
+      },
+      "recall@100": {
+        "mean": 0.733,
+        "ci_low": 0.714,
+        "ci_high": 0.753,
+        "n": 2000
+      },
+      "mrr@10": {
+        "mean": 0.1287,
+        "ci_low": 0.1171,
+        "ci_high": 0.1403,
+        "n": 2000
+      },
+      "ndcg@10": {
+        "mean": 0.1716,
+        "ci_low": 0.1586,
+        "ci_high": 0.1846,
+        "n": 2000
+      },
+      "precision@1": {
+        "mean": 0.0635,
+        "ci_low": 0.053,
+        "ci_high": 0.0745,
+        "n": 2000
+      },
+      "precision@5": {
+        "mean": 0.0427,
+        "ci_low": 0.0391,
+        "ci_high": 0.0464,
+        "n": 2000
+      },
+      "precision@10": {
+        "mean": 0.0312,
+        "ci_low": 0.0292,
+        "ci_high": 0.0333,
+        "n": 2000
+      },
+      "passage_hit@1": {
+        "mean": 0.0211,
+        "ci_low": 0.015,
+        "ci_high": 0.0271,
+        "n": 1994
+      },
+      "passage_hit@5": {
+        "mean": 0.0732,
+        "ci_low": 0.0622,
+        "ci_high": 0.0848,
+        "n": 1994
+      },
+      "passage_hit@10": {
+        "mean": 0.1103,
+        "ci_low": 0.0978,
+        "ci_high": 0.1244,
+        "n": 1994
+      },
+      "passage_hit@20": {
+        "mean": 0.1625,
+        "ci_low": 0.1469,
+        "ci_high": 0.1795,
+        "n": 1994
+      },
+      "passage_mrr@10": {
+        "mean": 0.0431,
+        "ci_low": 0.0364,
+        "ci_high": 0.0504,
+        "n": 1994
+      }
+    },
+    "hybrid-modernbert-legal": {
+      "recall@1": {
+        "mean": 0.077,
+        "ci_low": 0.0655,
+        "ci_high": 0.089,
+        "n": 2000
+      },
+      "recall@5": {
+        "mean": 0.232,
+        "ci_low": 0.2135,
+        "ci_high": 0.2505,
+        "n": 2000
+      },
+      "recall@10": {
+        "mean": 0.3325,
+        "ci_low": 0.3115,
+        "ci_high": 0.353,
+        "n": 2000
+      },
+      "recall@20": {
+        "mean": 0.4485,
+        "ci_low": 0.426,
+        "ci_high": 0.4715,
+        "n": 2000
+      },
+      "recall@100": {
+        "mean": 0.7285,
+        "ci_low": 0.709,
+        "ci_high": 0.7475,
+        "n": 2000
+      },
+      "mrr@10": {
+        "mean": 0.1448,
+        "ci_low": 0.1327,
+        "ci_high": 0.157,
+        "n": 2000
+      },
+      "ndcg@10": {
+        "mean": 0.1888,
+        "ci_low": 0.1753,
+        "ci_high": 0.2023,
+        "n": 2000
+      },
+      "precision@1": {
+        "mean": 0.077,
+        "ci_low": 0.0655,
+        "ci_high": 0.089,
+        "n": 2000
+      },
+      "precision@5": {
+        "mean": 0.0464,
+        "ci_low": 0.0427,
+        "ci_high": 0.0501,
+        "n": 2000
+      },
+      "precision@10": {
+        "mean": 0.0333,
+        "ci_low": 0.0311,
+        "ci_high": 0.0353,
+        "n": 2000
+      },
+      "passage_hit@1": {
+        "mean": 0.0311,
+        "ci_low": 0.0241,
+        "ci_high": 0.0386,
+        "n": 1994
+      },
+      "passage_hit@5": {
+        "mean": 0.0943,
+        "ci_low": 0.0817,
+        "ci_high": 0.1078,
+        "n": 1994
+      },
+      "passage_hit@10": {
+        "mean": 0.1399,
+        "ci_low": 0.1244,
+        "ci_high": 0.156,
+        "n": 1994
+      },
+      "passage_hit@20": {
+        "mean": 0.1981,
+        "ci_low": 0.181,
+        "ci_high": 0.2166,
+        "n": 1994
+      },
+      "passage_mrr@10": {
+        "mean": 0.0583,
+        "ci_low": 0.0502,
+        "ci_high": 0.0665,
+        "n": 1994
+      }
+    }
+  },
+  "comparisons": {
+    "dense": {
+      "legal minus general [ndcg@10]": {
+        "metric": "ndcg@10",
+        "diff": 0.0161,
+        "ci_low": 0.0068,
+        "ci_high": 0.0254,
+        "p": 0.0011,
+        "n": 2000,
+        "p_holm": 0.0044
+      },
+      "legal minus general [mrr@10]": {
+        "metric": "mrr@10",
+        "diff": 0.0094,
+        "ci_low": 0.0006,
+        "ci_high": 0.0181,
+        "p": 0.0482,
+        "n": 2000,
+        "p_holm": 0.1446
+      },
+      "legal minus general [recall@1]": {
+        "metric": "recall@1",
+        "diff": -0.001,
+        "ci_low": -0.0115,
+        "ci_high": 0.0095,
+        "p": 0.93301,
+        "n": 2000,
+        "p_holm": 1.0
+      },
+      "legal minus general [recall@10]": {
+        "metric": "recall@10",
+        "diff": 0.0375,
+        "ci_low": 0.021,
+        "ci_high": 0.054,
+        "p": 0.0001,
+        "n": 2000,
+        "p_holm": 0.0006
+      },
+      "legal minus general [recall@100]": {
+        "metric": "recall@100",
+        "diff": 0.054,
+        "ci_low": 0.037,
+        "ci_high": 0.0705,
+        "p": 0.0001,
+        "n": 2000,
+        "p_holm": 0.0006
+      },
+      "legal minus general [passage_hit@10]": {
+        "metric": "passage_hit@10",
+        "diff": 0.0025,
+        "ci_low": -0.0085,
+        "ci_high": 0.0145,
+        "p": 0.72563,
+        "n": 1994,
+        "p_holm": 1.0
+      }
+    },
+    "hybrid": {
+      "legal minus general [ndcg@10]": {
+        "metric": "ndcg@10",
+        "diff": 0.0027,
+        "ci_low": -0.0033,
+        "ci_high": 0.0093,
+        "p": 0.40126,
+        "n": 2000,
+        "p_holm": 1.0
+      },
+      "legal minus general [mrr@10]": {
+        "metric": "mrr@10",
+        "diff": -0.0002,
+        "ci_low": -0.0066,
+        "ci_high": 0.006,
+        "p": 0.9503,
+        "n": 2000,
+        "p_holm": 1.0
+      },
+      "legal minus general [recall@1]": {
+        "metric": "recall@1",
+        "diff": -0.0045,
+        "ci_low": -0.0125,
+        "ci_high": 0.003,
+        "p": 0.33737,
+        "n": 2000,
+        "p_holm": 1.0
+      },
+      "legal minus general [recall@10]": {
+        "metric": "recall@10",
+        "diff": 0.0125,
+        "ci_low": -0.0,
+        "ci_high": 0.0255,
+        "p": 0.05919,
+        "n": 2000,
+        "p_holm": 0.29595
+      },
+      "legal minus general [recall@100]": {
+        "metric": "recall@100",
+        "diff": 0.0135,
+        "ci_low": 0.002,
+        "ci_high": 0.0255,
+        "p": 0.0304,
+        "n": 2000,
+        "p_holm": 0.1824
+      },
+      "legal minus general [passage_hit@10]": {
+        "metric": "passage_hit@10",
+        "diff": -0.0055,
+        "ci_low": -0.0135,
+        "ci_high": 0.003,
+        "p": 0.23358,
+        "n": 1994,
+        "p_holm": 0.93432
+      }
+    },
+    "dense-modernbert-general vs bm25": {
+      "metric": "ndcg@10",
+      "diff": -0.0207,
+      "ci_low": -0.0322,
+      "ci_high": -0.009,
+      "p": 0.0003,
+      "n": 2000
+    },
+    "hybrid-modernbert-general vs bm25": {
+      "metric": "ndcg@10",
+      "diff": 0.0098,
+      "ci_low": 0.0034,
+      "ci_high": 0.0163,
+      "p": 0.0033,
+      "n": 2000
+    },
+    "dense-modernbert-legal vs bm25": {
+      "metric": "ndcg@10",
+      "diff": -0.0047,
+      "ci_low": -0.0161,
+      "ci_high": 0.0059,
+      "p": 0.41526,
+      "n": 2000
+    },
+    "hybrid-modernbert-legal vs bm25": {
+      "metric": "ndcg@10",
+      "diff": 0.0125,
+      "ci_low": 0.0047,
+      "ci_high": 0.0199,
+      "p": 0.0015,
+      "n": 2000
+    }
+  }
+}

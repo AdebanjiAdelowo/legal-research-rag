@@ -149,6 +149,58 @@ The gain from fusion is real and small. The two retrievers fail on overlapping
 queries: when the citing court's vocabulary differs from the rule's, a 33M-parameter
 general encoder does not bridge the gap either.
 
+### Legal-domain against general-purpose encoder
+
+`results/encoders/encoders_modernbert-general_vs_modernbert-legal.json`, run on a
+Kaggle Tesla T4 at commit `9ecd6f7`; the rebuilt corpus matched the local fingerprint.
+
+| System | Recall@10 | Recall@100 | MRR@10 | nDCG@10 | Passage hit@10 |
+|---|---|---|---|---|---|
+| BM25 | 0.305 | 0.694 | 0.136 | 0.176 | 0.127 |
+| Dense, general (`nomic-ai/modernbert-embed-base`) | 0.275 | 0.679 | 0.119 | 0.155 | 0.108 |
+| Dense, legal (`freelawproject/modernbert-embed-base_finetune_512`) | 0.312 | 0.733 | 0.129 | 0.172 | 0.110 |
+| Hybrid, BM25 + general | 0.320 | 0.715 | 0.145 | 0.186 | 0.145 |
+| Hybrid, BM25 + legal | 0.333 | 0.729 | 0.145 | 0.189 | 0.140 |
+
+Legal minus general, paired, Holm-adjusted across six metrics:
+
+| | nDCG@10 | Recall@10 | Recall@100 | Recall@1 | Passage hit@10 |
+|---|---|---|---|---|---|
+| Dense | +0.016 [0.007, 0.025], p = 0.004 | +0.037 [0.021, 0.054], p < 0.001 | +0.054 [0.037, 0.070], p < 0.001 | -0.001, p = 1.0 | +0.003, p = 1.0 |
+| Hybrid | +0.003 [-0.003, 0.009], p = 1.0 | +0.013 [0.000, 0.025], p = 0.30 | +0.013 [0.002, 0.025], p = 0.18 | -0.005, p = 1.0 | -0.006, p = 0.93 |
+
+**Fine-tuning on legal text improves dense retrieval, mostly deeper in the list.** The
+gain grows with depth: nothing at rank 1, 3.7 points at 10, 5.4 points at 100. The
+legal encoder brings more of the right cases into the candidate set without putting
+them first.
+
+**The gain does not survive fusion with BM25.** As a hybrid the two encoders are
+statistically indistinguishable on every metric after adjustment. What the legal
+encoder adds over the general one overlaps with what BM25 already supplies: both are
+better than the general encoder at matching legal terms of art.
+
+**Neither dense encoder beats BM25 alone.** The general encoder is significantly worse
+(-0.021 nDCG@10, p < 0.001); the legal one is level (-0.005, p = 0.42). A 149M-parameter
+encoder fine-tuned on court opinions matches a tuned lexical baseline and does not
+exceed it.
+
+**It does not find the quoted paragraph more often.** Passage hit@10 is unchanged in
+the dense setting and slightly lower in the hybrid. The legal encoder finds the right
+opinion more often through some passage, not the passage the court quoted.
+
+**The effect is carried by a minority of queries.** On nDCG@10 the dense encoders tie
+on 1,405 of 2,000 queries (mostly both at zero); the legal encoder is better on 344 and
+worse on 251. On Recall@10 it wins 179 and loses 104.
+
+**Exposure is a live alternative explanation.** The legal model was fine-tuned on
+synthetic queries over U.S. opinions, which may include these. A test on opinions
+decided after its training data was assembled would separate memorisation from
+adaptation; the corpus here ends in 2016 and cannot provide one.
+
+Cost was equal: 43 minutes to encode 222,520 passages at 86 passages per second,
+1.9 GB of GPU memory at batch size 128, and 373 passages (0.17%) cut at the 512-token
+limit, identically for both.
+
 ## 5. The masking control
 
 `results/retrieval/retrieval_section220.json`, `leakage_control`
@@ -379,6 +431,8 @@ reported in the tables.
 | Section-aware chunking improves retrieval | It did not, including against a length-matched control |
 | A cross-encoder reranker improves ranking | A small web-trained reranker lowered every metric |
 | Dense retrieval beats BM25 | A small general encoder was worse; fusion gained 0.010 nDCG@10 |
+| A legal-domain encoder beats BM25 | It matched BM25 and did not exceed it |
+| A legal-domain encoder improves the hybrid | Its advantage over the general encoder disappeared once fused with BM25 |
 | Citations in the query leak the answer | They lowered BM25's score |
 | Query decomposition helps multi-issue queries | No effect with BM25, even with oracle splits |
 | A retrieval-score threshold supports abstention | At chance when the right case is missing |

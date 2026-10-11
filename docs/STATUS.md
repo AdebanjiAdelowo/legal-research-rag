@@ -21,6 +21,7 @@ that does not. Updated 2026-10-11. Corpus version `c1b900e309df`.
 | Grounded generation, local language model | `rag/rag_tinyllama-1.1b.json` | `TinyLlama-1.1B-Chat-v1.0`, 100 test queries, three evidence passages |
 | Error analysis | `analysis/error_analysis_bm25.json` | BM25 |
 | Latency and resources | `systems/systems_bm25+bge-small+minilm-l6.json` | Apple M3 Pro |
+| RQ2: legal against general encoder | `encoders/encoders_modernbert-general_vs_modernbert-legal.json`, per-query values beside it, provenance in `encoders/kaggle_run_v2/` | Kaggle Tesla T4, private kernel `adebanjiadelowo/legal-research-rag-gpu` version 2, commit `9ecd6f7`; fingerprint matched; 105 minutes |
 | Container image | none (manual check) | Built locally with Docker 29.8: 589 MB, non-root user, health check passes; `/health`, `/answer`, `/report` and `/citations/validate` answered on the synthetic corpus |
 
 ## Not run
@@ -30,7 +31,6 @@ alongside other work, a GPU, or a remote repository. None was started.
 
 | Experiment | Why not run | Command |
 |---|---|---|
-| RQ2: legal against general encoder (`freelawproject/modernbert-embed-base_finetune_512` at `04f0141f` against `nomic-ai/modernbert-embed-base` at `d556a88e`) | Two 596 MB downloads and several hours of encoding per model on a laptop. Prepared for a Kaggle GPU: experiment `experiments/encoders.py`, runner and staging script under `kaggle/`, fingerprint of the local corpus and benchmark committed. Not executed; needs a Kaggle account action | `python kaggle/prepare.py --username <kaggle-username> --out <staging folder>`, then the `kaggle` commands it prints (`kaggle/README.md`) |
 | Reranking with a larger or legal-domain cross-encoder | 2.3 GB download (`BAAI/bge-reranker-v2-m3`) | `legalrag experiment rerank reranker=bge-reranker-v2-m3 encoder=bge-small fusion=score alpha=0.7 k1=1.6 b=0.75` |
 | Generation with a capable open model | `Phi-3-mini-4k-instruct` is cached (7.6 GB) but needs about 8 GB of memory beside a 2 GB corpus on an 18 GB shared machine; `Qwen2.5-7B-Instruct` is a 15 GB download | `legalrag experiment rag generator=hf:microsoft/Phi-3-mini-4k-instruct limit=100 eval_judge=nli-xsmall filter_judge=lexical k1=1.6 b=0.75 tag=phi3-mini` (set `LEGALRAG_MAX_GB=14`) |
 | Large entailment judge | 870 MB download | `legalrag experiment judge judges=lexical,nli-xsmall,nli-base,nli-large` |

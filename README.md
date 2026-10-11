@@ -101,9 +101,14 @@ laptop. Several results go against the usual expectation and are reported as mea
     queries at chance (AUROC 0.50 for BM25, 0.51 for a cross-encoder). Questions outside
     federal law altogether are detected well (AUROC 0.99, and 100% with the scope rule).
 
-RQ2 is pending. The comparison of a legal-domain encoder with its general-purpose
-parent has not been run and no finding is claimed for it. It is prepared as a
-controlled experiment for a Kaggle GPU ([kaggle/README.md](kaggle/README.md)).
+11. **Legal-domain fine-tuning helps dense retrieval, and the gain vanishes in the
+    hybrid.** Run on a Kaggle T4 under identical conditions, the legal encoder scored
+    nDCG@10 0.172 against 0.155 for its general-purpose parent (+0.016, 95% interval
+    0.007 to 0.025) and Recall@100 0.733 against 0.679. Fused with BM25 the two were
+    indistinguishable (0.189 against 0.186). The legal encoder alone did not beat BM25
+    (0.172 against 0.176), and it did not find the quoted paragraph more often than the
+    general one. Its training data may include opinions in this corpus, so part of the
+    dense gain may be exposure and not domain adaptation.
 <!-- findings:end -->
 
 ## Architecture
@@ -229,8 +234,8 @@ All figures below are generated from the files under `results/` by
 |---|---|---|
 | Measured locally | Retrieval with BM25 and `bge-small-en-v1.5`, reranking, chunking, query decomposition, temporal and jurisdiction experiments, abstention, judge and citation-checker validation, generation with the extractive generator and a 1.1B local model, latency | Tables below; Apple M3 Pro, small models, corpus version `c1b900e309df` |
 | Checked end to end, not a measurement | One question answered on the full 4,940-opinion corpus with the default configuration: constraint parsing, date and binding-authority filters, evidence selection, extraction, citation checks and the report | `legalrag ask`, see [Usage](#usage) |
-| Pending | RQ2: the legal-domain encoder against its general-purpose parent | Prepared for a Kaggle GPU; [kaggle/README.md](kaggle/README.md) |
-| Pending | A larger reranker, the large entailment judge, and generation with a capable open model | `LEGALRAG_PLAN=full` in the same runner |
+| Measured on a Kaggle GPU | RQ2: the legal-domain encoder against its general-purpose parent, on the same passages, queries and labels as the local runs | Table below; Tesla T4, commit `9ecd6f7`, provenance under `results/encoders/kaggle_run_v2/` |
+| Pending | A larger reranker, the large entailment judge, and generation with a capable open model | Prepared for the same Kaggle runner; [kaggle/README.md](kaggle/README.md) |
 
 A pending row has no numbers anywhere in this repository. When a pending experiment
 is run, its result file is added under `results/` and its table appears below.
@@ -267,11 +272,60 @@ Paired differences in nDCG@10 unless marked (Holm-adjusted):
 
 ### Legal against general embedding model (RQ2)
 
-**Pending: not yet run.** No measurement exists for this comparison. It evaluates `freelawproject/modernbert-embed-base_finetune_512` against its parent `nomic-ai/modernbert-embed-base` on the same passages, queries and labels as the tables above, and is prepared to run on a Kaggle GPU: see [kaggle/README.md](kaggle/README.md) for the conditions held identical, the resource estimates and the procedure.
+2,000 test queries over 222,520 passages (corpus version `c1b900e309df`); hybrid weight tuned on 800 development queries. Both encoders at 512 tokens, float16, batch size 128, on cuda.
 
-```bash
-python kaggle/prepare.py --username <kaggle-username> --out <staging folder>
-```
+| Encoder | Model | Revision | Domain |
+|---|---|---|---|
+| modernbert-general | `nomic-ai/modernbert-embed-base` | `d556a88e3325` | general |
+| modernbert-legal | `freelawproject/modernbert-embed-base_finetune_512` | `04f0141fbc04` | legal |
+
+| System | Recall@1 | Recall@10 | Recall@100 | MRR@10 | nDCG@10 | Passage hit@10 |
+|---|---|---|---|---|---|---|
+| BM25 | 0.072 [0.061, 0.084] | 0.305 [0.285, 0.326] | 0.694 [0.674, 0.715] | 0.137 [0.125, 0.149] | 0.176 [0.163, 0.190] | 0.127 [0.112, 0.142] |
+| Dense, modernbert-embed-base (general) | 0.065 [0.054, 0.075] | 0.275 [0.255, 0.295] | 0.679 [0.658, 0.700] | 0.119 [0.108, 0.132] | 0.155 [0.143, 0.169] | 0.108 [0.095, 0.122] |
+| Hybrid, BM25 + modernbert-embed-base (general) | 0.082 [0.070, 0.094] | 0.320 [0.299, 0.341] | 0.715 [0.696, 0.735] | 0.145 [0.132, 0.158] | 0.186 [0.172, 0.200] | 0.145 [0.129, 0.162] |
+| Dense, modernbert-embed-base legal fine-tune | 0.064 [0.053, 0.074] | 0.312 [0.292, 0.333] | 0.733 [0.714, 0.753] | 0.129 [0.117, 0.140] | 0.172 [0.159, 0.185] | 0.110 [0.098, 0.124] |
+| Hybrid, BM25 + modernbert-embed-base legal fine-tune | 0.077 [0.066, 0.089] | 0.333 [0.311, 0.353] | 0.729 [0.709, 0.748] | 0.145 [0.133, 0.157] | 0.189 [0.175, 0.202] | 0.140 [0.124, 0.156] |
+
+**Dense alone: legal minus general** (paired, Holm-adjusted):
+
+| Metric | Difference |
+|---|---|
+| ndcg@10 | +0.016 [+0.007, +0.025], p = 0.004 |
+| mrr@10 | +0.009 [+0.001, +0.018], p = 0.145 |
+| recall@1 | -0.001 [-0.011, +0.009], p = 1.000 |
+| recall@10 | +0.037 [+0.021, +0.054], p < 0.001 |
+| recall@100 | +0.054 [+0.037, +0.070], p < 0.001 |
+| passage_hit@10 | +0.003 [-0.009, +0.015], p = 1.000 |
+
+**Hybrid with BM25: legal minus general** (paired, Holm-adjusted):
+
+| Metric | Difference |
+|---|---|
+| ndcg@10 | +0.003 [-0.003, +0.009], p = 1.000 |
+| mrr@10 | -0.000 [-0.007, +0.006], p = 1.000 |
+| recall@1 | -0.004 [-0.013, +0.003], p = 1.000 |
+| recall@10 | +0.013 [-0.000, +0.025], p = 0.296 |
+| recall@100 | +0.013 [+0.002, +0.025], p = 0.182 |
+| passage_hit@10 | -0.005 [-0.013, +0.003], p = 0.934 |
+
+**Per-query differences** (legal minus general):
+
+| System | Metric | Legal better | Tied | General better | 5th percentile | 95th percentile |
+|---|---|---|---|---|---|---|
+| Dense | ndcg@10 | 344 | 1405 | 251 | -0.356 | +0.387 |
+| Dense | recall@10 | 179 | 1717 | 104 | -1.000 | +1.000 |
+| Hybrid | ndcg@10 | 257 | 1504 | 239 | -0.289 | +0.301 |
+| Hybrid | recall@10 | 94 | 1837 | 69 | +0.000 | +0.000 |
+
+| Encoder | Corpus encoding | Passages/s | Peak GPU, corpus | Peak GPU, queries | Embeddings on disk | Query encoding ms (p50 / p95) | Search ms (p50 / p95) | Passages over the token limit |
+|---|---|---|---|---|---|---|---|---|
+| modernbert-general | 42.9 min | 86 | 1904 MB | 306 MB | 326 MB | 29.1 / 31.3 | 27.0 / 28.3 | 373 |
+| modernbert-legal | 43.0 min | 86 | 1904 MB | 598 MB | 326 MB | 30.0 / 33.1 | 26.6 / 27.7 | 373 |
+
+Peak GPU memory for query encoding is measured without unloading the encoder evaluated before it, so the second figure includes the first model.
+
+The legal model was fine-tuned on synthetic queries over U.S. court opinions that may include opinions in this corpus, so a difference in its favour can reflect exposure to the documents as well as domain adaptation.
 
 ### Cross-encoder reranking (RQ3)
 
@@ -532,8 +586,9 @@ Error patterns are analysed in [docs/error_analysis.md](docs/error_analysis.md).
   on near-verbatim quotations, which is easier than paraphrase.
 - **No reference answers.** Generation quality is measured by citation support and by
   proximity to what the court quoted, not by legal correctness.
-- **RQ2 is unanswered here.** No legal-domain model has been evaluated; every dense
-  result reported uses a general-purpose encoder.
+- **RQ2 rests on one model pair.** One legal fine-tune was compared with its parent,
+  on one corpus. The fine-tune's training opinions may overlap this corpus, which the
+  experiment cannot rule out, and other legal encoders may behave differently.
 - **Small local models.** The results reported use a 33M-parameter encoder, a
   22M-parameter reranker trained on web search, and a 1.1B-parameter chat model. The
   negative results for reranking and for model-based generation describe those
@@ -647,7 +702,7 @@ python scripts/make_results_tables.py
 Each command writes a JSON file under `results/`. Experiments abort if their memory
 footprint passes `LEGALRAG_MAX_GB` (default 10).
 
-The legal-against-general encoder comparison is prepared for a Kaggle GPU. It checks
+The legal-against-general encoder comparison runs on a Kaggle GPU. It checks
 out one exact commit, installs from `uv.lock`, rebuilds the corpus and benchmark and
 verifies them against `kaggle/expected_fingerprint.json`, encodes all 222,520 passages
 with both models under identical settings, and exports results and provenance only:

@@ -186,6 +186,10 @@ def encoders() -> str:
              "Embeddings on disk", "Query encoding ms (p50 / p95)", "Search ms (p50 / p95)",
              "Passages over the token limit"], rows))  # fmt: skip
         out.append(
+            "Peak GPU memory for query encoding is measured without unloading the encoder "
+            "evaluated before it, so the second figure includes the first model."
+        )
+        out.append(
             "The legal model was fine-tuned on synthetic queries over U.S. court opinions that "
             "may include opinions in this corpus, so a difference in its favour can reflect "
             "exposure to the documents as well as domain adaptation."

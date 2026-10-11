@@ -1,0 +1,42 @@
+{
+  "corpus_version": "c1b900e309df",
+  "scheme": "section220",
+  "chunks": 222520,
+  "build": {
+    "encode_seconds": 2572.7,
+    "docs_per_second": 86.5,
+    "docs_encoded_this_run": 222520,
+    "docs_resumed_from_blocks": 0,
+    "device": "cuda",
+    "precision": "float16",
+    "batch_size": 128,
+    "max_tokens": 512,
+    "dimension": 768,
+    "stored_dtype": "float16",
+    "normalised": true,
+    "tokens": {
+      "median": 236,
+      "p95": 363,
+      "max": 883,
+      "passages_truncated": 373,
+      "share_truncated": 0.00168
+    },
+    "peak_gpu_memory": {
+      "allocated_mb": 1904.4,
+      "reserved_mb": 2300.0,
+      "gpu": "Tesla T4",
+      "gpu_total_mb": 14911.7
+    }
+  },
+  "kind": "dense",
+  "encoder": {
+    "key": "modernbert-general",
+    "model": "nomic-ai/modernbert-embed-base",
+    "revision": "d556a88e332558790b210f7bdbe87da2fa94a8d8",
+    "domain": "general",
+    "query_prefix": "search_query: ",
+    "doc_prefix": "search_document: ",
+    "max_tokens": 512,
+    "note": "149M parameters, 768 dimensions, mean pooling. General-purpose parent of the legal model. Its card requires the search_query and search_document prefixes. It accepts 8,192 tokens; it is run at 512 to match the legal fine-tune."
+  }
+}

@@ -1,9 +1,12 @@
 # Kaggle GPU runner
 
 `run_gpu_experiments.py` runs, on a Kaggle GPU, the comparison that is too heavy for a
-laptop: a legal-domain embedding model against its general-purpose parent (RQ2). No
-result of this experiment exists yet; nothing in this document is a measurement
-unless it says so.
+laptop: a legal-domain embedding model against its general-purpose parent (RQ2).
+
+This comparison has been run once (kernel version 2, commit `9ecd6f7`, Tesla T4). Its
+results are in the main README and its measured resource use is in the section
+"Measured on the completed run" below. Everything under "Resource estimates" was
+written before the run and is kept for comparison.
 
 ## What is compared
 
@@ -122,6 +125,29 @@ documentation; check the notebook settings): 12 hours per GPU session, about 30 
 hours per week, 20 GB of saved output, and 13 or 29 GB of RAM depending on the source.
 The runner checks free disk and GPU memory before starting, and sets its memory guard
 to 85% of the RAM it finds.
+
+### Measured on the completed run
+
+Kernel `adebanjiadelowo/legal-research-rag-gpu`, version 2, batch run on a Tesla T4
+(two attached, one used), 1,149 GB free scratch disk, memory guard 27 GB.
+
+| Item | Measured | Estimate above |
+|---|---|---|
+| Whole run | 105 minutes | 1 to 2 hours |
+| Locked install (`uv sync`) | 72 seconds; torch 2.14.1 with CUDA 13.0 | not estimated |
+| Fetch | 3.1 minutes: 4,762 opinions by identifier, 178 by page, 36 not hosted, the same counts as locally | 5 to 15 minutes |
+| Build | 5.4 minutes | 8 to 15 minutes |
+| Fingerprint | matched `expected_fingerprint.json` exactly | must match |
+| Corpus encoding, each encoder | 42.9 minutes at 86 passages per second | 10 to 30 minutes: too optimistic |
+| Peak GPU memory, corpus encoding | 1,904 MB allocated, 2,300 MB reserved, batch size 128 | 3 to 6 GB: too pessimistic |
+| Embeddings | 326 MiB per encoder on disk (341.8 MB), 652 MiB in memory | as computed |
+| Passages over 512 tokens | 373 of 222,520 (0.17%); longest 883 tokens | not estimated |
+| Query latency | 29 to 30 ms to encode, 27 ms to search, per query | not estimated |
+| Experiment step | 2.4 minutes | 10 to 20 minutes |
+
+The batch size never had to be reduced. Kaggle's own Python start-up hook printed
+`ModuleNotFoundError: No module named 'wrapt'` at the start of each step inside the
+locked environment; it is unrelated to this code and every step exited 0.
 
 ### If a session is interrupted
 

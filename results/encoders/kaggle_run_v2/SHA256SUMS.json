@@ -1,0 +1,17 @@
+{
+  "kaggle_kernel": "adebanjiadelowo/legal-research-rag-gpu",
+  "kernel_version": 2,
+  "commit_evaluated": "9ecd6f70f4f1b9e9bb6b69e209e45235537acd73",
+  "export_archive_sha256": "23ac7895694576d7cae611891541f23555832d1aae35864feef09f5b313f8394",
+  "files": {
+    "encoders_modernbert-general_vs_modernbert-legal.json": "0cd2f9369c7957c93952e337a04d983de2578ef0a1b61e4132c5fc13536dad1d",
+    "encoders_modernbert-general_vs_modernbert-legal_per_query.json": "cfff60d731df742970548a3f1772f9807622d8e9895b1aca8093e7f92c06ccc0",
+    "kaggle_run_v2/fingerprint.json": "94cce4125f46f32d1ee836647b6e0f8015a12ac0d4c16cf369c10f74dae227e1",
+    "kaggle_run_v2/indexes/bm25.json": "f3ad933c553b2982508e6170011d8ea6bc6becd0067e1a071acc5fabf84695e1",
+    "kaggle_run_v2/indexes/dense-modernbert-general.json": "e88e62d3c3e93b047fc4191ea91e62ed32dc56944673b94768f8fd34fc05ddc3",
+    "kaggle_run_v2/indexes/dense-modernbert-legal.json": "e5477e037d11580454cef5973176c37b4918b2530364cf5e821fbc2ef31c2b88",
+    "kaggle_run_v2/manifest.json": "d62d2a0cac4f37513bab206d13a237f14ea35f8cd4996b144f690178cf4869a3",
+    "kaggle_run_v2/provenance.json": "50dc463f07a43dc02d7cc451e203c001dcc499e93ac997c3a098d9940df79a74",
+    "kaggle_run_v2/requirements-frozen.txt": "6be591973c8e042c3588c940ebcd73b496c6e150f69451c0d637dd5154b6552f"
+  }
+}

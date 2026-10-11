@@ -1,0 +1,130 @@
+{
+  "corpus_version": "c1b900e309df",
+  "sources": {
+    "lepard": {
+      "repo": "rmahari/LePaRD",
+      "revision": "0194f95c3091acceab3b887c9b09ef432cf84052",
+      "file": "top_10000_data.csv.gz",
+      "sha256": "498265154a547c89b3486b75dda7a6bccfd258cb4246491c246fc136891bfa99",
+      "license": "CC BY-NC-SA 4.0"
+    },
+    "caselaw_access_project": {
+      "base_url": "https://static.case.law",
+      "license": "CC0 1.0"
+    }
+  },
+  "corpus": {
+    "cases": 4940,
+    "paragraphs": 476588,
+    "words_total": 38476277,
+    "words_median": 6060.5,
+    "words_p90": 14990,
+    "year_min": 1824,
+    "year_max": 2016,
+    "by_court_level": {
+      "scotus": 2108,
+      "appeals": 2741,
+      "other": 56,
+      "district": 35
+    },
+    "by_circuit": {
+      "none": 2164,
+      "10": 161,
+      "6": 224,
+      "DC": 222,
+      "2": 527,
+      "4": 128,
+      "5": 198,
+      "9": 250,
+      "3": 277,
+      "Fed": 187,
+      "7": 155,
+      "1": 155,
+      "11": 207,
+      "8": 85
+    },
+    "with_section_headings": 4140,
+    "parsed": 4940,
+    "benchmark_ids_remapped": 178,
+    "empty_opinion_text": 0,
+    "exact_duplicates_dropped": [],
+    "near_duplicates_reported": []
+  },
+  "chunks": {
+    "section220": {
+      "chunks": 222520,
+      "words_mean": 168.3,
+      "words_median": 173.0,
+      "words_p95": 254
+    },
+    "fixed220": {
+      "chunks": 209532,
+      "words_mean": 217.9,
+      "words_median": 220.0,
+      "words_p95": 220
+    }
+  },
+  "benchmark_filters": {
+    "rows": 2076241,
+    "source_missing": 17521,
+    "bad_date": 35628,
+    "quote_in_context": 139340,
+    "too_short": 149318,
+    "eligible": 306887
+  },
+  "passages_seen": 3930,
+  "passages_located_in_source": 3920,
+  "queries": {
+    "history": {
+      "queries": 800,
+      "with_gold_paragraph": 798,
+      "words_median": 120.0,
+      "date_min": "1975-02-11",
+      "date_max": "1999-12-30",
+      "gold_scotus_share": 0.797
+    },
+    "dev": {
+      "queries": 800,
+      "with_gold_paragraph": 799,
+      "words_median": 117.0,
+      "date_min": "2000-01-06",
+      "date_max": "2009-12-30",
+      "gold_scotus_share": 0.62
+    },
+    "test": {
+      "queries": 2000,
+      "with_gold_paragraph": 1994,
+      "words_median": 91.0,
+      "date_min": "2010-01-04",
+      "date_max": "2018-02-09",
+      "gold_scotus_share": 0.613
+    },
+    "multi_test": {
+      "queries": 600,
+      "with_gold_paragraph": 600,
+      "words_median": 120.0,
+      "date_min": "2010-01-06",
+      "date_max": "2018-01-05",
+      "gold_scotus_share": 0.717
+    },
+    "multi_dev": {
+      "queries": 300,
+      "with_gold_paragraph": 300,
+      "words_median": 120.0,
+      "date_min": "2000-01-06",
+      "date_max": "2009-12-23",
+      "gold_scotus_share": 0.737
+    }
+  },
+  "query_sizes_requested": {
+    "single": {
+      "dev": 800,
+      "test": 2000,
+      "history": 800
+    },
+    "multi": {
+      "dev": 300,
+      "test": 600
+    }
+  }
+}
