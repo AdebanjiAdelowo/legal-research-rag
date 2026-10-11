@@ -160,3 +160,22 @@ def test_plan_names_and_expected_fingerprint_are_consistent():
         expected["queries"]["test"]["count"] == 2000 and expected["queries"]["dev"]["count"] == 800
     )
     assert len(expected["chunks"]["section220"]["sha256"]) == 64
+
+
+def test_bundle_is_found_at_any_mount_depth(tmp_path, monkeypatch):
+    runner = load("run_gpu_experiments")
+    monkeypatch.delenv("LEGALRAG_SOURCE_DATASET", raising=False)
+    monkeypatch.setattr(runner, "INPUT", tmp_path / "input")
+    with pytest.raises(SystemExit, match="does not exist"):
+        runner.find_bundle()
+    deep = tmp_path / "input" / "datasets" / "someone" / "legal-research-rag-src"
+    deep.mkdir(parents=True)
+    with pytest.raises(SystemExit, match="mounted inputs"):
+        runner.find_bundle()
+    (deep / runner.BUNDLE).write_bytes(b"x")
+    assert runner.find_bundle() == deep
+    flat = tmp_path / "input" / "other"
+    flat.mkdir()
+    (flat / runner.BUNDLE).write_bytes(b"x")
+    with pytest.raises(SystemExit, match="more than one"):
+        runner.find_bundle()

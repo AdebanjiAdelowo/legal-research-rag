@@ -130,14 +130,30 @@ def secret(name: str) -> str | None:
 # -- source ------------------------------------------------------------------
 
 
+def input_listing(depth: int = 4) -> str:
+    """What is mounted under the input directory, for the error message."""
+    if not INPUT.exists():
+        return f"{INPUT} does not exist"
+    paths = [p for p in sorted(INPUT.rglob("*")) if len(p.relative_to(INPUT).parts) <= depth]
+    return "\n".join("  " + str(p) for p in paths[:60]) or f"{INPUT} is empty"
+
+
 def find_bundle() -> Path:
+    """The folder holding the bundle. Kaggle's mount layout has changed over time
+    (``/kaggle/input/<slug>`` and ``/kaggle/input/datasets/<owner>/<slug>``), so the
+    search is by file name at any depth."""
     override = os.environ.get("LEGALRAG_SOURCE_DATASET")
-    roots = [Path(override)] if override else sorted(INPUT.glob("*")) + sorted(INPUT.glob("*/*"))
-    for root in roots:
-        if (root / BUNDLE).exists():
-            return root
+    if override:
+        found = [Path(override) / BUNDLE] if (Path(override) / BUNDLE).exists() else []
+    else:
+        found = sorted(INPUT.rglob(BUNDLE)) if INPUT.exists() else []
+    if len(found) == 1:
+        return found[0].parent
+    if len(found) > 1:
+        raise SystemExit(f"more than one {BUNDLE} is attached: {[str(f) for f in found]}")
     raise SystemExit(
-        f"no {BUNDLE} under {INPUT}; attach the source dataset made by kaggle/prepare.py"
+        f"no {BUNDLE} under {INPUT}; attach the source dataset made by kaggle/prepare.py\n"
+        f"mounted inputs:\n{input_listing()}"
     )
 
 
@@ -258,7 +274,7 @@ def prepare_data() -> str:
     """Build the corpus and benchmark, or copy a prebuilt private dataset, then check
     that it is the one the local results were computed on."""
     home = WORK / "home"
-    prebuilt = next(iter(sorted(INPUT.glob("*/processed/manifest.json"))), None)
+    prebuilt = next(iter(sorted(INPUT.rglob("processed/manifest.json"))), None)
     if prebuilt is not None:
         log(f"using prebuilt processed data from {prebuilt.parent}")
         shutil.copytree(prebuilt.parent, home / "data" / "processed", dirs_exist_ok=True)
