@@ -58,24 +58,56 @@ ENCODERS: dict[str, EncoderSpec] = {
             query_prefix="search_query: ",
             doc_prefix="search_document: ",
             max_tokens=512,
-            note="149M parameters, 768 dimensions. General-purpose parent of the legal model.",
+            note=(
+                "149M parameters, 768 dimensions, mean pooling. General-purpose parent of "
+                "the legal model. Its card requires the search_query and search_document "
+                "prefixes. It accepts 8,192 tokens; it is run at 512 to match the legal "
+                "fine-tune."
+            ),
         ),
         EncoderSpec(
             key="modernbert-legal",
             model="freelawproject/modernbert-embed-base_finetune_512",
-            revision="main",
+            revision="04f0141fbc045122439d28d51ba670f3091e9ed8",
             domain="legal",
             query_prefix="search_query: ",
             doc_prefix="search_document: ",
             max_tokens=512,
             note=(
-                "Free Law Project fine-tune of nomic-ai/modernbert-embed-base on U.S. "
-                "court opinions. Same architecture and size as its parent, so the pair "
-                "isolates the effect of legal-domain fine-tuning."
+                "Free Law Project fine-tune of nomic-ai/modernbert-embed-base on synthetic "
+                "queries over U.S. court opinions (Free-Law-Project/"
+                "opinions-synthetic-query-512). Same architecture, size, tokeniser, "
+                "pooling and prefixes as its parent, so the pair isolates the effect of "
+                "legal-domain fine-tuning. Fine-tuned at 512 tokens, which is the "
+                "sequence limit used for both models here."
             ),
         ),
     ]
 }
+
+
+def reset_gpu_peak() -> None:
+    """Start a fresh measurement of peak GPU memory (CUDA only)."""
+    import torch
+
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+
+
+def gpu_peak_mb() -> dict | None:
+    """Peak GPU memory since ``reset_gpu_peak``: tensors allocated, and the larger
+    amount the allocator reserved. None without CUDA; Apple's MPS backend exposes no
+    comparable peak counter."""
+    import torch
+
+    if not torch.cuda.is_available():
+        return None
+    return {
+        "allocated_mb": round(torch.cuda.max_memory_allocated() / 2**20, 1),
+        "reserved_mb": round(torch.cuda.max_memory_reserved() / 2**20, 1),
+        "gpu": torch.cuda.get_device_name(0),
+        "gpu_total_mb": round(torch.cuda.get_device_properties(0).total_memory / 2**20, 1),
+    }
 
 
 def pick_device(preferred: str | None = None) -> str:
@@ -115,6 +147,16 @@ class Encoder:
         out[order] = emb
         return out
 
+    def token_lengths(self, texts: list[str], prefix: str = "") -> np.ndarray:
+        """Token count of each text with ``prefix`` and special tokens, untruncated."""
+        tokenizer = self.model.tokenizer
+        out: list[int] = []
+        for lo in range(0, len(texts), 2048):
+            batch = [prefix + t for t in texts[lo : lo + 2048]]
+            enc = tokenizer(batch, add_special_tokens=True, truncation=False, verbose=False)
+            out.extend(len(ids) for ids in enc["input_ids"])
+        return np.asarray(out)
+
     def encode_queries(self, texts: list[str], batch_size: int = 64) -> np.ndarray:
         return self._encode([self.spec.query_prefix + t for t in texts], batch_size, False)
 
@@ -147,13 +189,19 @@ class DenseIndex:
         the caller once the final index has been saved.
         """
         encoder = Encoder(spec, device, max_tokens)
+        limit = encoder.model.max_seq_length
+        # Passages longer than the limit are cut by the tokeniser. Count them, so the
+        # amount of text the encoder never saw is on record and not silent.
+        lengths = encoder.token_lengths(texts, spec.doc_prefix)
+        reset_gpu_peak()
         start = time.perf_counter()
         parts: list[np.ndarray] = []
-        encoded = 0
+        encoded = resumed = 0
         for n, lo in enumerate(range(0, len(texts), block)):
             path = work_dir / f"part-{n:05d}.npy" if work_dir else None
             if path is not None and path.exists():
                 parts.append(np.load(path))
+                resumed += len(parts[-1])
                 continue
             emb = encoder.encode_docs(texts[lo : lo + block], batch_size, progress=False)
             emb = emb.astype(np.float16)
@@ -168,14 +216,36 @@ class DenseIndex:
             rate = encoded / (time.perf_counter() - start)
             print(f"{spec.key}: {done}/{len(texts)} chunks, {rate:.0f}/s", flush=True)
         seconds = time.perf_counter() - start
+        embeddings = np.concatenate(parts)
+        if len(embeddings) != len(texts):
+            raise RuntimeError(
+                f"{spec.key}: {len(embeddings)} embeddings for {len(texts)} passages; "
+                "delete the partial blocks and rebuild"
+            )
         stats = {
+            # Time and rate cover the passages encoded in this run only; a resumed
+            # build reports how many came from earlier blocks.
             "encode_seconds": round(seconds, 1),
             "docs_per_second": round(encoded / seconds, 1) if encoded else None,
             "docs_encoded_this_run": encoded,
+            "docs_resumed_from_blocks": resumed,
             "device": encoder.device,
-            "max_tokens": encoder.model.max_seq_length,
+            "precision": "float32" if encoder.device == "cpu" else "float16",
+            "batch_size": batch_size,
+            "max_tokens": limit,
+            "dimension": int(embeddings.shape[1]),
+            "stored_dtype": "float16",
+            "normalised": True,
+            "tokens": {
+                "median": int(np.median(lengths)),
+                "p95": int(np.quantile(lengths, 0.95)),
+                "max": int(lengths.max()),
+                "passages_truncated": int((lengths > limit).sum()),
+                "share_truncated": round(float((lengths > limit).mean()), 5),
+            },
+            "peak_gpu_memory": gpu_peak_mb(),
         }
-        return cls(np.concatenate(parts), spec, encoder), stats
+        return cls(embeddings, spec, encoder), stats
 
     def score_embedded(self, query_emb: np.ndarray) -> np.ndarray:
         if self._emb32 is None:

@@ -1,7 +1,7 @@
 # Experiment status
 
 Which experiments have result files, which do not, and the exact command for each
-that does not. Updated 2026-10-10. Corpus version `c1b900e309df`.
+that does not. Updated 2026-10-11. Corpus version `c1b900e309df`.
 
 ## Run, with results under `results/`
 
@@ -30,12 +30,26 @@ alongside other work, a GPU, or a remote repository. None was started.
 
 | Experiment | Why not run | Command |
 |---|---|---|
-| RQ2: legal against general encoder (`freelawproject/modernbert-embed-base_finetune_512` against `nomic-ai/modernbert-embed-base`) | Two 596 MB downloads; several hours of encoding per model on a laptop | `legalrag index modernbert-general modernbert-legal` then `legalrag experiment retrieval` |
+| RQ2: legal against general encoder (`freelawproject/modernbert-embed-base_finetune_512` at `04f0141f` against `nomic-ai/modernbert-embed-base` at `d556a88e`) | Two 596 MB downloads and several hours of encoding per model on a laptop. Prepared for a Kaggle GPU: experiment `experiments/encoders.py`, runner and staging script under `kaggle/`, fingerprint of the local corpus and benchmark committed. Not executed; needs a Kaggle account action | `python kaggle/prepare.py --username <kaggle-username> --out <staging folder>`, then the `kaggle` commands it prints (`kaggle/README.md`) |
 | Reranking with a larger or legal-domain cross-encoder | 2.3 GB download (`BAAI/bge-reranker-v2-m3`) | `legalrag experiment rerank reranker=bge-reranker-v2-m3 encoder=bge-small fusion=score alpha=0.7 k1=1.6 b=0.75` |
 | Generation with a capable open model | `Phi-3-mini-4k-instruct` is cached (7.6 GB) but needs about 8 GB of memory beside a 2 GB corpus on an 18 GB shared machine; `Qwen2.5-7B-Instruct` is a 15 GB download | `legalrag experiment rag generator=hf:microsoft/Phi-3-mini-4k-instruct limit=100 eval_judge=nli-xsmall filter_judge=lexical k1=1.6 b=0.75 tag=phi3-mini` (set `LEGALRAG_MAX_GB=14`) |
 | Large entailment judge | 870 MB download | `legalrag experiment judge judges=lexical,nli-xsmall,nli-base,nli-large` |
 | Dense retrieval in the chunking, decomposition, temporal and jurisdiction experiments | Those experiments use BM25 only; a second dense index (171 MB, 20 minutes) is needed for the fixed-window scheme | extend `experiments/chunking.py` and `experiments/decomposition.py` to take a retriever name |
 | Everything above in one job on a GPU | Needs a Kaggle account action: creating a private dataset and pushing a kernel | `kaggle/README.md` |
+
+## Verified without being an experiment
+
+- **Real-corpus smoke test.** `legalrag ask` with `configs/default.yaml` answered a
+  question restricted to the Ninth Circuit before 2009 on the full corpus: the
+  constraints were parsed and applied, evidence passages were selected from Supreme
+  Court decisions, and verbatim statements were produced with their citation checks
+  attached. This shows the pipeline runs end to end on real data; it is one query and
+  measures nothing.
+- **Kaggle preparation, local parts only.** Staging a Git bundle, cloning it and
+  verifying the commit, refusing a dirty tree, the export filter, and the encoder
+  experiment on a synthetic corpus with stand-in encoders are covered by tests. The
+  runner has not been executed on Kaggle: the GPU steps, the locked install on Linux,
+  the rebuild reproducing the fingerprint, and the GitHub source are untested.
 
 ## Known gaps in what was run
 

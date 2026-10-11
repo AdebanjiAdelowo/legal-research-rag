@@ -58,6 +58,8 @@ NAMES = {
     "dense-bge-small": "Dense, bge-small-en-v1.5 (general)",
     "dense-modernbert-general": "Dense, modernbert-embed-base (general)",
     "dense-modernbert-legal": "Dense, modernbert-embed-base legal fine-tune",
+    "hybrid-modernbert-general": "Hybrid, BM25 + modernbert-embed-base (general)",
+    "hybrid-modernbert-legal": "Hybrid, BM25 + modernbert-embed-base legal fine-tune",
 }
 
 
@@ -98,15 +100,6 @@ def retrieval() -> str:
         rows = [[name, diff(c)] for name, c in r["comparisons"].items()]
         out.append("Paired differences in nDCG@10 unless marked (Holm-adjusted):")
         out.append(table(["Comparison", "Difference"], rows))
-    missing = [e for e in ("modernbert-general", "modernbert-legal")
-               if f"dense-{e}" not in r["systems"]]  # fmt: skip
-    if missing:
-        out.append(pending(
-            "legal against general encoder (RQ2)",
-            "legalrag index modernbert-general modernbert-legal\nlegalrag experiment retrieval",
-            "Needs two 596 MB model downloads and several hours of laptop encoding, or the "
-            "Kaggle runner (`kaggle/README.md`).",
-        ))  # fmt: skip
     leak = r["leakage_control"]
     rows = [[system_name(k), num(v["masked"]), num(v["unmasked"]), diff(v["difference"])]
             for k, v in leak.items()]  # fmt: skip
@@ -114,6 +107,77 @@ def retrieval() -> str:
     out.append(
         table(["System", "nDCG@10 masked", "nDCG@10 unmasked", "Unmasked minus masked"], rows)
     )
+    return "\n\n".join(out)
+
+
+def encoders() -> str:
+    folder = RESULTS / "encoders"
+    files = sorted(folder.glob("encoders_*.json")) if folder.exists() else []
+    files = [f for f in files if "_limit" not in f.name]
+    if not files:
+        return (
+            "**Pending: not yet run.** No measurement exists for this comparison. It "
+            "evaluates `freelawproject/modernbert-embed-base_finetune_512` against its parent "
+            "`nomic-ai/modernbert-embed-base` on the same passages, queries and labels as the "
+            "tables above, and is prepared to run on a Kaggle GPU: see "
+            "[kaggle/README.md](kaggle/README.md) for the conditions held identical, the "
+            "resource estimates and the procedure.\n\n"
+            "```bash\npython kaggle/prepare.py --username <kaggle-username> --out <staging folder>\n```"
+        )
+    out = []
+    for f in files:
+        r = json.loads(f.read_text())
+        cfg, cond = r["config"], r["identical_conditions"]
+        specs = {k: v["spec"] for k, v in r["encoders"].items()}
+        out.append(
+            f"{cfg['n_test']:,} test queries over {cfg['chunks']:,} passages (corpus version "
+            f"`{r['corpus_version']}`); hybrid weight tuned on {cfg['n_dev']} development "
+            f"queries. Both encoders at {cond['max_tokens']} tokens, {cond['precision']}, batch "
+            f"size {cond['batch_size']}, on {cond['device']}."
+        )
+        out.append(table(
+            ["Encoder", "Model", "Revision", "Domain"],
+            [[k, f"`{s['model']}`", f"`{s['revision'][:12]}`", s["domain"]]
+             for k, s in specs.items()]))  # fmt: skip
+        rows = []
+        for key, sy in r["systems"].items():
+            rows.append([
+                system_name(key), ci(sy["recall@1"]), ci(sy["recall@10"]), ci(sy["recall@100"]),
+                ci(sy["mrr@10"]), ci(sy["ndcg@10"]), ci(sy["passage_hit@10"]),
+            ])  # fmt: skip
+        out.append(table(
+            ["System", "Recall@1", "Recall@10", "Recall@100", "MRR@10", "nDCG@10",
+             "Passage hit@10"], rows))  # fmt: skip
+        for kind, title in (("dense", "Dense alone"), ("hybrid", "Hybrid with BM25")):
+            out.append(f"**{title}: legal minus general** (paired, Holm-adjusted):")
+            out.append(table(
+                ["Metric", "Difference"],
+                [[n.split("[")[1].rstrip("]"), diff(c)] for n, c in r["comparisons"][kind].items()]))  # fmt: skip
+        rows = []
+        for key, e in r["encoders"].items():
+            b, st, lat = e["index_build"] or {}, e["storage"], e["latency"]
+            gpu = (b.get("peak_gpu_memory") or {}).get("allocated_mb")
+            qgpu = (lat.get("peak_gpu_memory_query_encoding") or {}).get("allocated_mb")
+            rows.append([
+                key,
+                f"{b['encode_seconds'] / 60:.1f} min" if b.get("encode_seconds") else "n/a",
+                f"{b['docs_per_second']:.0f}" if b.get("docs_per_second") else "n/a",
+                f"{gpu:.0f} MB" if gpu else "n/a",
+                f"{qgpu:.0f} MB" if qgpu else "n/a",
+                f"{st['disk_mb']:.0f} MB",
+                f"{lat['query_encoding']['p50_ms']:.1f} / {lat['query_encoding']['p95_ms']:.1f}",
+                f"{lat['exact_search']['p50_ms']:.1f} / {lat['exact_search']['p95_ms']:.1f}",
+                str((b.get("tokens") or {}).get("passages_truncated", "n/a")),
+            ])  # fmt: skip
+        out.append(table(
+            ["Encoder", "Corpus encoding", "Passages/s", "Peak GPU, corpus", "Peak GPU, queries",
+             "Embeddings on disk", "Query encoding ms (p50 / p95)", "Search ms (p50 / p95)",
+             "Passages over the token limit"], rows))  # fmt: skip
+        out.append(
+            "The legal model was fine-tuned on synthetic queries over U.S. court opinions that "
+            "may include opinions in this corpus, so a difference in its favour can reflect "
+            "exposure to the documents as well as domain adaptation."
+        )
     return "\n\n".join(out)
 
 
@@ -432,7 +496,8 @@ def systems() -> str:
 
 
 SECTIONS = [
-    ("Retrieval: BM25, dense and hybrid (RQ1, RQ2)", retrieval),
+    ("Retrieval: BM25, dense and hybrid (RQ1)", retrieval),
+    ("Legal against general embedding model (RQ2)", encoders),
     ("Cross-encoder reranking (RQ3)", rerank),
     ("Fixed-size against section-aware chunking", chunking),
     ("Query decomposition (RQ5)", decomposition),

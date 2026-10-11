@@ -11,7 +11,7 @@ from legalrag.paths import Paths
 
 EXPERIMENTS = (
     "retrieval", "chunking", "rerank", "decomposition", "temporal", "jurisdiction",
-    "citations", "judge", "rag", "abstention", "systems", "analysis",
+    "citations", "judge", "rag", "abstention", "systems", "analysis", "encoders",
 )  # fmt: skip
 
 
@@ -82,6 +82,26 @@ def _build(args) -> None:
     print(json.dumps({k: manifest[k] for k in ("corpus_version", "chunks", "queries")}, indent=2))
 
 
+def _fingerprint(args) -> None:
+    from pathlib import Path
+
+    from legalrag.data.build import fingerprint, fingerprint_differences
+
+    actual = fingerprint(Paths.default())
+    if args.write:
+        Path(args.write).write_text(json.dumps(actual, indent=2) + "\n")
+    if args.check:
+        diffs = fingerprint_differences(actual, json.loads(Path(args.check).read_text()))
+        if diffs:
+            print("the built corpus or benchmark differs from the expected one:", file=sys.stderr)
+            for d in diffs:
+                print("  " + d, file=sys.stderr)
+            sys.exit(1)
+        print(f"fingerprint matches {args.check}")
+    if not args.write and not args.check:
+        print(json.dumps(actual, indent=2))
+
+
 def _index(args) -> None:
     from legalrag.index import store as S
 
@@ -142,6 +162,13 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("build", help="parse, chunk and sample queries")
     p.set_defaults(fn=_build)
+
+    p = sub.add_parser(
+        "fingerprint", help="hash the built corpus and benchmark; compare with a saved one"
+    )
+    p.add_argument("--write", help="write the fingerprint to this file")
+    p.add_argument("--check", help="fail unless the build matches this fingerprint file")
+    p.set_defaults(fn=_fingerprint)
 
     p = sub.add_parser("index", help="build indexes: bm25 or an encoder key")
     p.add_argument("names", nargs="+")

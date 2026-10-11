@@ -79,6 +79,71 @@ def load_manifest(paths: Paths) -> dict:
     return json.loads(paths.manifest.read_text())
 
 
+def query_fingerprint(queries: list[Query]) -> str:
+    """Hash of everything about a query set that affects evaluation: identifiers,
+    retrieval text, date, forum and relevance labels."""
+    h = hashlib.sha256()
+    for q in queries:
+        record = [q.query_id, q.text, q.date, q.court, sorted(q.gold_cases), sorted(q.gold_paras)]
+        h.update(json.dumps(record, ensure_ascii=False).encode())
+        h.update(b"\n")
+    return h.hexdigest()
+
+
+def chunk_fingerprint(chunks: list[Chunk]) -> str:
+    """Hash of the passages in index order: identifiers, text and paragraph ids."""
+    h = hashlib.sha256()
+    for c in chunks:
+        h.update(c.chunk_id.encode())
+        h.update(hashlib.sha256(c.text.encode()).digest())
+        h.update(",".join(c.para_ids).encode())
+    return h.hexdigest()
+
+
+def fingerprint(
+    paths: Paths, schemes: tuple[str, ...] = ("section220",), splits=("dev", "test")
+) -> dict:
+    """What an experiment is run on, reduced to hashes and counts.
+
+    Two builds with equal fingerprints index the same passages and evaluate the same
+    queries against the same relevance labels, so results from them are comparable.
+    The fingerprint holds no text and can be committed.
+    """
+    manifest = load_manifest(paths)
+    out: dict = {
+        "corpus_version": manifest["corpus_version"],
+        "cases": manifest["corpus"]["cases"],
+        "lepard_sha256": manifest["sources"]["lepard"]["sha256"],
+        "chunks": {},
+        "queries": {},
+    }
+    for scheme in schemes:
+        chunks = [Chunk(**d) for d in read_jsonl(paths.chunks(scheme))]
+        out["chunks"][scheme] = {"count": len(chunks), "sha256": chunk_fingerprint(chunks)}
+    for split in splits:
+        queries = load_queries(paths, split)
+        out["queries"][split] = {"count": len(queries), "sha256": query_fingerprint(queries)}
+    return out
+
+
+def fingerprint_differences(actual: dict, expected: dict) -> list[str]:
+    """Human-readable differences between two fingerprints; empty when they match."""
+    diffs: list[str] = []
+
+    def walk(a, e, path: str) -> None:
+        if isinstance(e, dict):
+            for key, value in e.items():
+                if not isinstance(a, dict) or key not in a:
+                    diffs.append(f"{path}{key}: missing, expected {value!r}")
+                else:
+                    walk(a[key], value, f"{path}{key}.")
+        elif a != e:
+            diffs.append(f"{path[:-1]}: got {a!r}, expected {e!r}")
+
+    walk(actual, expected, "")
+    return diffs
+
+
 def corpus_version(cases: dict[str, Case]) -> str:
     h = hashlib.sha256()
     for case_id in sorted(cases):

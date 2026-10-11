@@ -101,8 +101,9 @@ laptop. Several results go against the usual expectation and are reported as mea
     queries at chance (AUROC 0.50 for BM25, 0.51 for a cross-encoder). Questions outside
     federal law altogether are detected well (AUROC 0.99, and 100% with the scope rule).
 
-The comparison of a legal-domain encoder with its general-purpose parent (RQ2) was not
-evaluated: it requires two 596 MB models and is set up to run on a GPU.
+RQ2 is pending. The comparison of a legal-domain encoder with its general-purpose
+parent has not been run and no finding is claimed for it. It is prepared as a
+controlled experiment for a Kaggle GPU ([kaggle/README.md](kaggle/README.md)).
 <!-- findings:end -->
 
 ## Architecture
@@ -220,11 +221,22 @@ scored as misses, so all retrieval figures are lower bounds on usefulness.
 ## Results
 
 All figures below are generated from the files under `results/` by
-`scripts/make_results_tables.py`. Runs were made on an Apple M3 Pro laptop with small
-models.
+`scripts/make_results_tables.py`.
+
+### Evaluation status
+
+| Status | What | Where |
+|---|---|---|
+| Measured locally | Retrieval with BM25 and `bge-small-en-v1.5`, reranking, chunking, query decomposition, temporal and jurisdiction experiments, abstention, judge and citation-checker validation, generation with the extractive generator and a 1.1B local model, latency | Tables below; Apple M3 Pro, small models, corpus version `c1b900e309df` |
+| Checked end to end, not a measurement | One question answered on the full 4,940-opinion corpus with the default configuration: constraint parsing, date and binding-authority filters, evidence selection, extraction, citation checks and the report | `legalrag ask`, see [Usage](#usage) |
+| Pending | RQ2: the legal-domain encoder against its general-purpose parent | Prepared for a Kaggle GPU; [kaggle/README.md](kaggle/README.md) |
+| Pending | A larger reranker, the large entailment judge, and generation with a capable open model | `LEGALRAG_PLAN=full` in the same runner |
+
+A pending row has no numbers anywhere in this repository. When a pending experiment
+is run, its result file is added under `results/` and its table appears below.
 
 <!-- results:start -->
-### Retrieval: BM25, dense and hybrid (RQ1, RQ2)
+### Retrieval: BM25, dense and hybrid (RQ1)
 
 2,000 test queries over 222,520 passages; settings tuned on 800 development queries. Case-level metrics unless marked. Brackets are 95% bootstrap intervals.
 
@@ -246,19 +258,20 @@ Paired differences in nDCG@10 unless marked (Holm-adjusted):
 | hybrid-score-bge-small vs bm25 | +0.010 [+0.005, +0.015], p = 0.002 |
 | hybrid-score-bge-small vs hybrid-rrf-bge-small | +0.004 [-0.001, +0.010], p = 0.255 |
 
-No result is reported for legal against general encoder (RQ2). Needs two 596 MB model downloads and several hours of laptop encoding, or the Kaggle runner (`kaggle/README.md`).
-
-```bash
-legalrag index modernbert-general modernbert-legal
-legalrag experiment retrieval
-```
-
 **Leakage control.** The same queries with citations and case names left in:
 
 | System | nDCG@10 masked | nDCG@10 unmasked | Unmasked minus masked |
 |---|---|---|---|
 | BM25 | 0.176 | 0.158 | -0.018 [-0.025, -0.011], p < 0.001 |
 | Dense, bge-small-en-v1.5 (general) | 0.152 | 0.154 | +0.002 [-0.004, +0.008], p = 0.571 |
+
+### Legal against general embedding model (RQ2)
+
+**Pending: not yet run.** No measurement exists for this comparison. It evaluates `freelawproject/modernbert-embed-base_finetune_512` against its parent `nomic-ai/modernbert-embed-base` on the same passages, queries and labels as the tables above, and is prepared to run on a Kaggle GPU: see [kaggle/README.md](kaggle/README.md) for the conditions held identical, the resource estimates and the procedure.
+
+```bash
+python kaggle/prepare.py --username <kaggle-username> --out <staging folder>
+```
 
 ### Cross-encoder reranking (RQ3)
 
@@ -519,6 +532,8 @@ Error patterns are analysed in [docs/error_analysis.md](docs/error_analysis.md).
   on near-verbatim quotations, which is easier than paraphrase.
 - **No reference answers.** Generation quality is measured by citation support and by
   proximity to what the court quoted, not by legal correctness.
+- **RQ2 is unanswered here.** No legal-domain model has been evaluated; every dense
+  result reported uses a general-purpose encoder.
 - **Small local models.** The results reported use a 33M-parameter encoder, a
   22M-parameter reranker trained on web search, and a 1.1B-parameter chat model. The
   negative results for reranking and for model-based generation describe those
@@ -632,9 +647,23 @@ python scripts/make_results_tables.py
 Each command writes a JSON file under `results/`. Experiments abort if their memory
 footprint passes `LEGALRAG_MAX_GB` (default 10).
 
-Larger encoders, rerankers and open-model generation are run on a GPU with
-`kaggle/run_gpu_experiments.py`; resource estimates and steps are in
-[kaggle/README.md](kaggle/README.md).
+The legal-against-general encoder comparison is prepared for a Kaggle GPU. It checks
+out one exact commit, installs from `uv.lock`, rebuilds the corpus and benchmark and
+verifies them against `kaggle/expected_fingerprint.json`, encodes all 222,520 passages
+with both models under identical settings, and exports results and provenance only:
+
+```bash
+python kaggle/prepare.py --username <kaggle-username> --out <staging folder outside the repo>
+```
+
+That command stages files locally and uploads nothing. The conditions held identical,
+resource estimates and the remaining steps are in [kaggle/README.md](kaggle/README.md).
+With both dense indexes present, the experiment itself is:
+
+```bash
+legalrag fingerprint --check kaggle/expected_fingerprint.json
+legalrag experiment encoders general=modernbert-general legal=modernbert-legal k1=1.6 b=0.75
+```
 
 ## Tests
 
@@ -663,7 +692,7 @@ src/legalrag/
   demo.py        synthetic corpus for tests and the demonstration mode
 app/             Streamlit interface
 configs/         pipeline configurations
-kaggle/          GPU runner
+kaggle/          GPU runner, local staging script, expected corpus fingerprint
 scripts/         result-table generator
 docs/            dataset selection, methodology, error analysis
 results/         result files (aggregate numbers only)

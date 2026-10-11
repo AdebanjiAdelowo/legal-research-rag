@@ -14,8 +14,8 @@ jobs:
           enable-cache: true
       # No neural extras: the suite must pass with numpy and scipy alone.
       - run: uv sync --frozen --extra app --extra dev
-      - run: uv run ruff check src tests app
-      - run: uv run ruff format --check src tests app
+      - run: uv run ruff check src tests app scripts kaggle
+      - run: uv run ruff format --check src tests app kaggle
       - run: uv run pytest -q
       - name: Pipeline answers a question on the synthetic corpus
         run: LEGALRAG_CONFIG=configs/demo.yaml uv run legalrag ask "When does a government official lose qualified immunity?"

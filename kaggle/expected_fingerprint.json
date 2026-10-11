@@ -1,0 +1,21 @@
+{
+  "corpus_version": "c1b900e309df",
+  "cases": 4940,
+  "lepard_sha256": "498265154a547c89b3486b75dda7a6bccfd258cb4246491c246fc136891bfa99",
+  "chunks": {
+    "section220": {
+      "count": 222520,
+      "sha256": "e85ef6d2a1d851c857ea37be6e3b8f8b5061af51c54deb9ed58407d392c6651e"
+    }
+  },
+  "queries": {
+    "dev": {
+      "count": 800,
+      "sha256": "0d19a5684dfc56a50d5d570233fbcb92a837932ab5455cdac440c8272618cb4c"
+    },
+    "test": {
+      "count": 2000,
+      "sha256": "cacb1bf7bf6cb48cd121cad132ddffc342487dce21a964142d8029012ee349dc"
+    }
+  }
+}

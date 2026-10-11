@@ -106,3 +106,135 @@ def test_error_analysis_buckets():
     assert [_bucket(v, [3000, 7000, 15000], labels) for v in (10, 3000, 14999, 20000)] == labels
     out = _table({"a": [1.0, 0.0, 1.0, 1.0], "b": []})
     assert out["a"]["n"] == 4 and out["a"]["recall@10"] == 0.75 and "b" not in out
+
+
+class _HashEncoder:
+    """Deterministic stand-in for a sentence encoder: hashed bag of words."""
+
+    def __init__(self, spec, dim=64, drop=()):
+        self.spec, self.dim, self.drop = spec, dim, set(drop)
+
+    def _vec(self, text):
+        import hashlib
+
+        from legalrag.index.bm25 import tokenize
+
+        v = np.zeros(self.dim, dtype=np.float32)
+        for tok in tokenize(text):
+            if tok not in self.drop:
+                v[int(hashlib.md5(tok.encode()).hexdigest(), 16) % self.dim] += 1.0
+        return v / (np.linalg.norm(v) or 1.0)
+
+    def encode_queries(self, texts, batch_size=64):
+        return np.stack([self._vec(self.spec.query_prefix + t) for t in texts])
+
+    def encode_docs(self, texts, batch_size=64, progress=False):
+        return np.stack([self._vec(self.spec.doc_prefix + t) for t in texts])
+
+
+def _encoder_bench(tmp_path, build_overrides=None):
+    import json
+
+    from legalrag.index import store as S
+    from legalrag.index.dense import DenseIndex, EncoderSpec
+
+    bench = make_bench(tmp_path)
+    build = {
+        "max_tokens": 512,
+        "precision": "float32",
+        "batch_size": 8,
+        "stored_dtype": "float16",
+        "normalised": True,
+        "device": "cpu",
+        "encode_seconds": 1.0,
+        "docs_per_second": 19.0,
+        "tokens": {"passages_truncated": 0},
+        "peak_gpu_memory": None,
+    }
+    for key, drop in (("fake-general", ("immunity", "injunction")), ("fake-legal", ())):
+        spec = EncoderSpec(key, f"test/{key}", "0" * 40, key.split("-")[1], "q: ", "d: ")
+        enc = _HashEncoder(spec, drop=drop)
+        index = DenseIndex(enc.encode_docs(bench.store.texts).astype(np.float16), spec, enc)
+        meta = {
+            "corpus_version": bench.store.corpus_version,
+            "scheme": bench.store.scheme,
+            "chunks": len(bench.store),
+            "build": {**build, **(build_overrides or {}).get(key, {})},
+        }
+        index.save(S.index_dir(bench.paths, bench.store, f"dense-{key}"), meta)
+        bench._dense[key] = index
+    return bench, json
+
+
+def test_encoder_comparison_reports_everything_under_identical_conditions(tmp_path):
+    from legalrag.experiments.encoders import COMPARED, compare_encoders
+
+    bench, _ = _encoder_bench(tmp_path)
+    queries = demo.queries()
+    out = compare_encoders(bench, queries, queries, "fake-general", "fake-legal", latency_queries=3)
+    cond = out["identical_conditions"]
+    assert (
+        cond["chunks"] == len(bench.store) and cond["max_tokens"] == 512 and cond["prefixes_equal"]
+    )
+    assert (
+        cond["dev_queries"]["sha256"] == cond["test_queries"]["sha256"]
+    )  # same list passed twice here
+    assert set(out["systems"]) == {
+        "bm25",
+        "dense-fake-general",
+        "dense-fake-legal",
+        "hybrid-fake-general",
+        "hybrid-fake-legal",
+    }
+    for name in out["systems"]:
+        assert {"recall@10", "recall@100", "mrr@10", "ndcg@10"} <= set(out["systems"][name])
+    for kind in ("dense", "hybrid"):
+        assert set(out["comparisons"][kind]) == {f"legal minus general [{m}]" for m in COMPARED}
+        assert all("p_holm" in c and "ci_low" in c for c in out["comparisons"][kind].values())
+    for key in ("fake-general", "fake-legal"):
+        e = out["encoders"][key]
+        assert e["spec"]["revision"] == "0" * 40 and e["index_build"]["encode_seconds"] == 1.0
+        assert e["storage"]["dimension"] == 64 and e["storage"]["disk_mb"] >= 0
+        assert e["latency"]["query_encoding"]["mean_ms"] >= 0 and e["latency"]["queries"] == 3
+        assert 0.1 <= out["tuned_on_dev"][key]["alpha_bm25"] <= 0.9
+    # The stand-in "general" encoder cannot see two legal terms, so it must not win.
+    d = out["comparisons"]["dense"]["legal minus general [recall@10]"]["diff"]
+    assert d >= 0
+
+
+def test_encoder_comparison_refuses_unequal_conditions(tmp_path):
+    import pytest
+
+    from legalrag.experiments.encoders import check_identical_conditions, compare_encoders
+
+    bench, _ = _encoder_bench(tmp_path, {"fake-legal": {"max_tokens": 256}})
+    with pytest.raises(ValueError, match="max_tokens"):
+        compare_encoders(bench, demo.queries(), demo.queries(), "fake-general", "fake-legal", 2)
+    base = {"corpus_version": "a", "scheme": "s", "chunks": 5, "build": {}}
+    with pytest.raises(ValueError, match="not the same passages"):
+        check_identical_conditions({"x": base, "y": {**base, "chunks": 4}})
+
+
+def test_fingerprint_detects_any_change():
+    from legalrag.data.build import chunk_fingerprint, fingerprint_differences, query_fingerprint
+
+    queries = demo.queries()
+    base = query_fingerprint(queries)
+    assert base == query_fingerprint(demo.queries())
+    import copy
+
+    changed = copy.deepcopy(queries)
+    changed[0].gold_cases = ["cap:9002"]
+    assert query_fingerprint(changed) != base
+    assert query_fingerprint(queries[:-1]) != base
+    chunks = demo.chunks()
+    assert chunk_fingerprint(chunks) != chunk_fingerprint(chunks[:-1])
+    expected = {"corpus_version": "x", "chunks": {"s": {"count": 3, "sha256": "aa"}}}
+    assert fingerprint_differences(expected, expected) == []
+    diffs = fingerprint_differences(
+        {"corpus_version": "x", "chunks": {"s": {"count": 2, "sha256": "aa"}}}, expected
+    )
+    assert diffs == ["chunks.s.count: got 2, expected 3"]
+    assert fingerprint_differences({"corpus_version": "x"}, expected)[0].startswith(
+        "chunks: missing"
+    )

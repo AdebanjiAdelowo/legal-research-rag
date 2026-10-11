@@ -36,6 +36,9 @@ packages = ["src/legalrag"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Tests import the package from the source tree directly, so they do not depend on
+# the editable-install path file.
+pythonpath = ["src"]
 addopts = "-q"
 markers = [
     "ml: needs the optional neural dependencies and model weights",
