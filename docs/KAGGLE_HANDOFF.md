@@ -1,19 +1,34 @@
 # Kaggle handoff
 
 Where remote GPU work stands and exactly what the next session should do. Updated
-2026-10-11 14:20 CEST.
+2026-10-11 12:20 UTC.
 
 ## Next action
 
-**Submit the follow-up run (kernel version 4). It is staged and has not been
-submitted**, because the account was at its limit of two batch GPU sessions.
+**Submit the follow-up run (kernel version 4) only when both conditions hold.** It is
+staged and has not been submitted.
+
+1. **A GPU slot is free.** The account allows two batch GPU sessions. At 12:15 UTC both
+   were taken: version 3 of this kernel (running) and
+   `research-innovation-monitor-gpu` (queued). Do not interrupt the latter.
+2. **Enough weekly GPU quota remains.** The quota is **6 hours a week** (21,600 s),
+   not the 30 hours reported by third parties. At 12:16 UTC 1.93 h had been used.
+   Version 3 will add about 1.75 h, leaving roughly 2.3 h before the refresh on
+   2026-10-17 00:00 UTC, less whatever the other project's run consumes. The follow-up
+   plan is estimated at 3 to 4 hours and has never run on a GPU. Submitting it with
+   less quota than that risks a run cut off part-way.
+
+If the quota is short, the choices are: wait for the refresh on 17 October and submit
+the plan unchanged, or decide to run a subset. The plan staged is the full `followup`
+plan, by decision; changing it means restaging at a new commit.
 
 ```bash
 cd ~/Documents/GitHub/legal-research-rag
 
-# 1. One status check. Submit only when fewer than two GPU sessions are running.
+# 1. One check each. Proceed only with a free slot and enough quota.
 kaggle kernels status adebanjiadelowo/legal-research-rag-gpu
 kaggle kernels status adebanjiadelowo/research-innovation-monitor-gpu
+/opt/anaconda3/bin/python kaggle/quota.py
 
 # 2. Confirm the staged files still describe commit 18973fd and plan followup.
 cat ~/kaggle-staging/legal-research-rag/source/COMMIT ~/kaggle-staging/legal-research-rag/source/PLAN
@@ -59,8 +74,13 @@ A chained shell command pushed the kernel after its dataset-upload step had been
 killed, so version 3 ran against the previous dataset version: the same commit and
 plan as version 2. It costs about 105 minutes of GPU quota and adds nothing new.
 
-- It can be cancelled from the kernel's web page. The CLI has no cancel command, and
-  the SDK's cancel call needs a session identifier the API does not return.
+- It can be cancelled from the kernel's web page, and only there. The CLI has no
+  cancel command. The SDK's `cancel_kernel_session` takes a session identifier, and no
+  authenticated call returns one: not the push response (`kernel_id`, `ref`, `url`,
+  `version_number`), not the kernel metadata, not the status call. Without it the
+  session cannot be identified, so no cancellation was attempted. Checked again at
+  12:16 UTC; it was still running.
+- It uses about 1.75 h of a 6-hour weekly GPU quota.
 - If it is left to finish, its output is an exact rerun and can be used as a
   replication check: download it, run the validator, and compare the metric values
   with `results/encoders/`. Do not import it over the version 2 files without
@@ -138,7 +158,8 @@ SHA-256 `23ac7895694576d7cae611891541f23555832d1aae35864feef09f5b313f8394`).
   `PYTHONPATH=$PWD/src`. Tests do not depend on it.
 - **Never chain a submission** after a step that can fail or be interrupted. Version 3
   is the result of doing that.
-- **Quota.** Version 2 used 105 GPU minutes; version 3 will use about the same.
+- **Quota.** 6 GPU hours a week, refreshing Saturday 00:00 UTC. Version 2 used 105
+  minutes; version 3 will use about the same. Check with `kaggle/quota.py`.
 - The staging folder `~/kaggle-staging/legal-research-rag/` is outside the repository
   and holds the bundle, the kernel files and the downloaded outputs.
 

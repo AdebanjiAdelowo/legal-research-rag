@@ -121,8 +121,10 @@ batch size (128, 64, 32, 16), so the two encoders are never built under differen
 settings. Batch size changes padding only, and the experiment records it.
 
 Kaggle's limits as reported by third parties (not confirmed against Kaggle's own
-documentation; check the notebook settings): 12 hours per GPU session, about 30 GPU
-hours per week, 20 GB of saved output, and 13 or 29 GB of RAM depending on the source.
+documentation; check the notebook settings): 12 hours per GPU session, 20 GB of saved
+output, and 13 or 29 GB of RAM depending on the source. The weekly GPU quota is
+account-specific: this account's API reports 6 hours, not the 30 that third parties
+describe, and at most two batch GPU sessions at once.
 The runner checks free disk and GPU memory before starting, and sets its memory guard
 to 85% of the RAM it finds.
 
@@ -236,6 +238,7 @@ All models in these plans are pinned to a Hub revision in the code.
 |---|---|
 | `prepare.py` | stage the bundle, `COMMIT`, `PLAN` and the kernel files locally; uploads nothing |
 | `kaggle_ipv4.py` | the Kaggle CLI with name resolution restricted to IPv4, for networks where uploads hang on IPv6 |
+| `quota.py` | print the weekly GPU quota allowed, used and remaining |
 | `validate_export.py` | check a downloaded export (file types, archive, commit, hashes, fingerprint, step exit codes, text-leak scan) and, with `--import`, copy results and provenance into `results/` |
 
 `python kaggle/run_gpu_experiments.py --dry-run` prints the plan without running it.
