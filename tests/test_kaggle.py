@@ -47,6 +47,13 @@ def test_stage_writes_bundle_commit_and_private_kernel(repo, tmp_path, monkeypat
     commit = git(repo, "rev-parse", "HEAD")
     assert staged["commit"] == commit
     assert (staged["source"] / "COMMIT").read_text().strip() == commit
+    assert (staged["source"] / "PLAN").read_text().strip() == "encoders"
+    assert (
+        prepare.stage(tmp_path / "out2", "someone", plan="followup")["source"]
+        .joinpath("PLAN")
+        .read_text()
+        == "followup\n"
+    )
     meta = json.loads((staged["kernel"] / "kernel-metadata.json").read_text())
     assert meta["is_private"] is True and meta["enable_gpu"] and meta["enable_internet"]
     assert meta["dataset_sources"] == ["someone/legal-research-rag-src"]
@@ -149,7 +156,7 @@ def test_plan_names_and_expected_fingerprint_are_consistent():
     runner = load("run_gpu_experiments")
     from legalrag.index.dense import ENCODERS
 
-    assert set(runner.PLANS) == {"encoders", "full"}
+    assert set(runner.PLANS) == {"encoders", "full", "followup"}
     for key in (runner.GENERAL, runner.LEGAL):
         spec = ENCODERS[key]
         assert len(spec.revision) == 40 and spec.max_tokens == 512
@@ -179,3 +186,48 @@ def test_bundle_is_found_at_any_mount_depth(tmp_path, monkeypatch):
     (flat / runner.BUNDLE).write_bytes(b"x")
     with pytest.raises(SystemExit, match="more than one"):
         runner.find_bundle()
+
+
+def test_followup_plan_continues_past_a_failed_step(monkeypatch):
+    runner = load("run_gpu_experiments")
+    calls = []
+
+    def fake(*args, name, check=True):
+        calls.append((name, args, check))
+        return 1 if name == "judge" else 0
+
+    monkeypatch.setattr(runner, "legalrag", fake)
+    runner.plan_followup()
+    names = [c[0] for c in calls]
+    assert names == ["index-bm25", "rerank", "judge", "citations", "abstention", "rag"]
+    assert runner.FAILED == ["judge"]
+    assert all(check is False for name, _, check in calls if name != "index-bm25")
+    rag = next(args for name, args, _ in calls if name == "rag")
+    assert any(a.startswith("generator=hf:microsoft/Phi-3-mini-4k-instruct@") for a in rag)
+    assert "eval_judge=nli-xsmall" in rag and "k1=1.6" in rag
+
+
+def test_plan_file_in_the_dataset_selects_the_plan(repo, tmp_path, monkeypatch):
+    prepare, runner = load("prepare"), load("run_gpu_experiments")
+    monkeypatch.setattr(prepare, "ROOT", repo)
+    staged = prepare.stage(tmp_path / "out", "someone", plan="followup")
+    monkeypatch.setattr(runner, "WORK", tmp_path / "work")
+    monkeypatch.setattr(runner, "REPO", tmp_path / "work" / "repo")
+    monkeypatch.setenv("LEGALRAG_SOURCE_DATASET", str(staged["source"]))
+    monkeypatch.delenv("LEGALRAG_PLAN", raising=False)
+    (tmp_path / "work").mkdir()
+    runner.checkout_from_bundle()
+    assert runner.resolve_plan() == "followup"
+    monkeypatch.setenv("LEGALRAG_PLAN", "nope")
+    with pytest.raises(SystemExit, match="unknown LEGALRAG_PLAN"):
+        runner.resolve_plan()
+
+
+def test_all_gpu_models_are_pinned_to_a_revision():
+    from legalrag.retrieval.rerank import RERANKERS
+    from legalrag.verify.judges import NLI_MODELS
+
+    runner = load("run_gpu_experiments")
+    assert len(RERANKERS[runner.RERANKER].revision) == 40
+    assert all(len(rev) == 40 for _, rev in NLI_MODELS.values())
+    assert len(runner.GENERATOR.split("@")[1]) == 40

@@ -237,7 +237,8 @@ class HFChat:
 
         from legalrag.index.dense import pick_device
 
-        self.name = model
+        self.name = model if revision == "main" else f"{model}@{revision[:12]}"
+        self.revision = revision
         self.device = pick_device(device)
         self.tokenizer = AutoTokenizer.from_pretrained(model, revision=revision)
         self.model = AutoModelForCausalLM.from_pretrained(
@@ -309,12 +310,13 @@ class LLMGenerator:
 
 
 def make_generator(spec: str | None) -> Generator:
-    """``extractive`` | ``hf:<model id>`` | ``anthropic[:<model id>]``."""
+    """``extractive`` | ``hf:<model id>[@<revision>]`` | ``anthropic[:<model id>]``."""
     if not spec or spec == "extractive":
         return ExtractiveGenerator()
     kind, _, model = spec.partition(":")
     if kind == "hf":
-        return LLMGenerator(HFChat(model))
+        model, _, revision = model.partition("@")
+        return LLMGenerator(HFChat(model, revision or "main"))
     if kind == "anthropic":
         return LLMGenerator(AnthropicChat(model or "claude-opus-5-5"))
     raise ValueError(f"unknown generator {spec!r}")

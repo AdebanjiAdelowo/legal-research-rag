@@ -26,7 +26,8 @@ What the script guarantees, and stops if it cannot:
 
 Environment variables (all optional):
 
-``LEGALRAG_PLAN``           ``encoders`` (default) or ``full``
+``LEGALRAG_PLAN``           ``encoders`` (default), ``followup`` or ``full``; when unset,
+                            the ``PLAN`` file in the source dataset is used
 ``LEGALRAG_SOURCE``         ``bundle`` (default) or ``github``
 ``LEGALRAG_SOURCE_DATASET`` dataset folder holding ``legal-research-rag.bundle`` and
                             ``COMMIT`` (default: found under ``/kaggle/input``)
@@ -160,6 +161,8 @@ def find_bundle() -> Path:
 def checkout_from_bundle() -> str:
     root = find_bundle()
     commit = os.environ.get("LEGALRAG_COMMIT") or (root / "COMMIT").read_text().strip()
+    if "LEGALRAG_PLAN" not in os.environ and (root / "PLAN").exists():
+        os.environ["LEGALRAG_PLAN"] = (root / "PLAN").read_text().strip()
     sh(["git", "clone", "--quiet", str(root / BUNDLE), str(REPO)], name="clone")
     sh(["git", "checkout", "--quiet", "--detach", commit], cwd=REPO, name="checkout")
     return commit
@@ -336,7 +339,36 @@ def plan_full() -> None:
              name="systems")  # fmt: skip
 
 
-PLANS = {"encoders": plan_encoders, "full": plan_full}
+RERANKER = "bge-reranker-v2-m3"
+GENERATOR = "hf:microsoft/Phi-3-mini-4k-instruct@f39ac1d28e925b323eae81227eaba4464caced4e"
+
+
+def plan_followup() -> None:
+    """The GPU experiments that remain after the encoder comparison.
+
+    None of them needs a dense index. Each step is independent: a failure is
+    recorded and the next step still runs, so an unattended run returns everything
+    that succeeded.
+    """
+    legalrag("index", "bm25", name="index-bm25")
+    steps = [
+        ("rerank", ["rerank", f"reranker={RERANKER}", *BM25]),
+        ("judge", ["judge", "judges=lexical,nli-xsmall,nli-base,nli-large"]),
+        ("citations", ["citations", "judge=nli-large", "limit=150", *BM25]),
+        ("abstention", ["abstention", f"reranker={RERANKER}", *BM25]),
+        ("rag", ["rag", f"generator={os.environ.get('LEGALRAG_GENERATOR', GENERATOR)}",
+                 "limit=200", "evidence_k=4", "eval_judge=nli-xsmall", "filter_judge=lexical",
+                 *BM25, "tag=phi3-mini-4k"]),
+    ]  # fmt: skip
+    for name, args in steps:
+        code = legalrag("experiment", *args, name=name, check=False)
+        if code != 0:
+            FAILED.append(name)
+            log(f"step {name} failed with exit code {code}; continuing")
+
+
+FAILED: list[str] = []
+PLANS = {"encoders": plan_encoders, "full": plan_full, "followup": plan_followup}
 
 
 # -- export --------------------------------------------------------------------
@@ -391,14 +423,20 @@ def dry_run(plan: str) -> None:
     steps = [
         "check out and verify the commit", "hand over to the runner at that commit", "preflight",
         "uv sync --frozen --extra ml", "fetch and build (or attached prebuilt dataset)",
-        "fingerprint --check", "index bm25", "index both encoders", "experiment encoders",
+        "fingerprint --check", "index bm25",
     ]  # fmt: skip
+    if plan in ("encoders", "full"):
+        steps += ["index both encoders", "experiment encoders"]
     if plan == "full":
         steps.append("remaining GPU experiments")
+    if plan == "followup":
+        steps += [f"rerank with {RERANKER}", "judge validation with nli-large",
+                  "citation checks with nli-large", f"abstention with {RERANKER}",
+                  f"generation with {GENERATOR.split('@')[0]}"]  # fmt: skip
     print("steps: " + "; ".join([*steps, "export"]))
 
 
-def bootstrap(plan: str) -> None:
+def bootstrap() -> None:
     """Check out the commit, then hand over to the runner inside that checkout.
 
     Whatever copy of this file Kaggle was given, the code that installs, builds and
@@ -410,6 +448,7 @@ def bootstrap(plan: str) -> None:
     source = os.environ.get("LEGALRAG_SOURCE", "bundle")
     commit = checkout_from_github() if source == "github" else checkout_from_bundle()
     head = verify_checkout(commit)
+    plan = resolve_plan()  # after the checkout: the dataset's PLAN file may set it
     log(f"evaluating commit {head} (plan {plan}, source {source})")
     committed = REPO / "kaggle" / "run_gpu_experiments.py"
     code = subprocess.run(
@@ -436,22 +475,31 @@ def run_from_checkout(plan: str, commit: str) -> None:
     provenance["data_source"] = prepare_data()
     PLANS[plan]()
     provenance["steps"] = STEPS
+    provenance["failed_steps"] = FAILED
     provenance["total_seconds"] = round(time.time() - started, 1)
     provenance["kaggle"] = {k: v for k, v in os.environ.items() if k.startswith("KAGGLE_KERNEL")}
     archive = export(provenance)
     log(f"done in {provenance['total_seconds'] / 60:.1f} minutes: {archive}")
+    if FAILED:
+        # The export is written first. The run still exits 0 so that Kaggle keeps the
+        # output; failures are listed in provenance.json and in this log.
+        log(f"FAILED STEPS: {FAILED}")
 
 
-def main() -> None:
+def resolve_plan() -> str:
     plan = os.environ.get("LEGALRAG_PLAN", "encoders")
     if plan not in PLANS:
         raise SystemExit(f"unknown LEGALRAG_PLAN {plan!r}; choose from {sorted(PLANS)}")
+    return plan
+
+
+def main() -> None:
     if "--dry-run" in sys.argv:
-        dry_run(plan)
+        dry_run(resolve_plan())
     elif "--from-checkout" in sys.argv:
-        run_from_checkout(plan, sys.argv[sys.argv.index("--from-checkout") + 1])
+        run_from_checkout(resolve_plan(), sys.argv[sys.argv.index("--from-checkout") + 1])
     else:
-        bootstrap(plan)
+        bootstrap()
 
 
 if __name__ == "__main__":

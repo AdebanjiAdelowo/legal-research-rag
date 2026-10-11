@@ -32,7 +32,7 @@ RERANKERS: dict[str, RerankerSpec] = {
         RerankerSpec(
             "minilm-l6",
             "cross-encoder/ms-marco-MiniLM-L6-v2",
-            "main",
+            "233902d25c440f23af6f7d6e94d2946bac0bee0a",
             note="22M parameters, trained on MS MARCO web passages. Runs on a laptop.",
         ),
         RerankerSpec(
@@ -44,7 +44,7 @@ RERANKERS: dict[str, RerankerSpec] = {
         RerankerSpec(
             "bge-reranker-v2-m3",
             "BAAI/bge-reranker-v2-m3",
-            "main",
+            "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
             note="568M parameters. GPU configuration.",
         ),
     ]
@@ -64,6 +64,12 @@ class Reranker:
             device=self.device,
             max_length=self.spec.max_tokens,
         )
+        # Half precision on CUDA only: it roughly halves the cost of a large reranker
+        # on a T4. Apple's MPS backend and the CPU stay in single precision.
+        self.precision = "float32"
+        if self.device == "cuda":
+            self.model.model.half()
+            self.precision = "float16"
 
     def score(self, query: str, texts: list[str]) -> np.ndarray:
         if not texts:

@@ -199,3 +199,20 @@ def test_extracted_sentences_do_not_carry_headings(pipeline):
     kinds = {s.text.split()[0]: s.type for s in answer.statements if s.quoted}
     assert kinds["A"] == T.REASONING and kinds["Judges"] == T.REASONING
     assert kinds["Corvid"] == T.FACT
+
+
+def test_generator_spec_carries_a_revision(monkeypatch):
+    from legalrag.rag import generate as G
+
+    seen = {}
+
+    class FakeChat:
+        def __init__(self, model, revision="main"):
+            seen.update(model=model, revision=revision)
+            self.name = model
+
+    monkeypatch.setattr(G, "HFChat", FakeChat)
+    G.make_generator("hf:org/model@" + "a" * 40)
+    assert seen == {"model": "org/model", "revision": "a" * 40}
+    G.make_generator("hf:org/model")
+    assert seen["revision"] == "main"

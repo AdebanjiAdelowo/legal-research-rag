@@ -5,7 +5,7 @@
 Writes two folders under ``--out``:
 
 ``source/``   a private Kaggle dataset: ``legal-research-rag.bundle`` (a Git bundle of
-              the current commit and its history), ``COMMIT`` (its hash) and
+              the current commit and its history), ``COMMIT`` (its hash), ``PLAN`` and
               ``dataset-metadata.json``
 ``kernel/``   the runner at that commit and ``kernel-metadata.json``
 
@@ -36,7 +36,7 @@ def git(*args: str) -> str:
     ).stdout.strip()
 
 
-def stage(out: Path, username: str, allow_dirty: bool = False) -> dict:
+def stage(out: Path, username: str, allow_dirty: bool = False, plan: str = "encoders") -> dict:
     dirty = git("status", "--porcelain")
     if dirty and not allow_dirty:
         raise SystemExit(f"commit or stash these changes first:\n{dirty}")
@@ -54,6 +54,7 @@ def stage(out: Path, username: str, allow_dirty: bool = False) -> dict:
         capture_output=True,
     )  # fmt: skip
     (source / "COMMIT").write_text(commit + "\n")
+    (source / "PLAN").write_text(plan + "\n")
     (source / "dataset-metadata.json").write_text(
         json.dumps(
             {
@@ -98,10 +99,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--username", required=True, help="Kaggle username")
     parser.add_argument("--out", required=True, type=Path, help="staging folder outside the repo")
+    parser.add_argument("--plan", default="encoders", choices=("encoders", "followup", "full"),
+                        help="which experiments the run executes")  # fmt: skip
     args = parser.parse_args()
-    staged = stage(args.out, args.username)
+    staged = stage(args.out, args.username, plan=args.plan)
     size = (staged["source"] / BUNDLE).stat().st_size / 1e6
     print(f"commit   {staged['commit']}")
+    print(f"plan     {args.plan}")
     print(f"bundle   {staged['source'] / BUNDLE} ({size:.1f} MB)")
     print(f"kernel   {staged['kernel']}")
     print("\nNothing has been uploaded. To run on Kaggle:")

@@ -71,9 +71,18 @@ class LexicalJudge:
 
 
 NLI_MODELS = {
-    "nli-xsmall": ("cross-encoder/nli-deberta-v3-xsmall", "main"),
-    "nli-base": ("MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli", "main"),
-    "nli-large": ("MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli", "main"),
+    "nli-xsmall": (
+        "cross-encoder/nli-deberta-v3-xsmall",
+        "a150876415327c80daeff35ca6f68f5ed8cf5c24",
+    ),
+    "nli-base": (
+        "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+        "6f5cf0a2b59cabb106aca4c287eed12e357e90eb",
+    ),
+    "nli-large": (
+        "MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
+        "b3546ea6b0346eb6f8d5d68b13c7dc6d0376b3d7",
+    ),
 }
 
 
