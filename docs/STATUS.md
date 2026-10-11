@@ -37,6 +37,13 @@ alongside other work, a GPU, or a remote repository. None was started.
 | Dense retrieval in the chunking, decomposition, temporal and jurisdiction experiments | Those experiments use BM25 only; a second dense index (171 MB, 20 minutes) is needed for the fixed-window scheme | extend `experiments/chunking.py` and `experiments/decomposition.py` to take a retriever name |
 | Everything above in one job on a GPU | Needs a Kaggle account action: creating a private dataset and pushing a kernel | `kaggle/README.md` |
 
+## Submitted or staged on Kaggle
+
+See [KAGGLE_HANDOFF.md](KAGGLE_HANDOFF.md) for versions, commits and the exact next
+command. In short: the encoder comparison is complete and imported; a follow-up plan
+(larger reranker, large entailment judge, reranker-based abstention, generation with
+Phi-3-mini) is staged at commit `18973fd` and not yet submitted.
+
 ## Verified without being an experiment
 
 - **Real-corpus smoke test.** `legalrag ask` with `configs/default.yaml` answered a

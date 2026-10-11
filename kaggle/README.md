@@ -219,10 +219,24 @@ no remote configured afterwards. This path is implemented but untested.
 
 ## Other plans
 
-`LEGALRAG_PLAN=full` runs the encoder comparison and then the remaining GPU
-experiments: a larger reranker, the large entailment judge, and generation with an
-open instruction-tuned model. That plan downloads about 20 GB more (the 7B generator
-is 15.2 GB) and needs the two-GPU option for the generator. The default plan is
-`encoders`.
+The plan is chosen when staging: `python kaggle/prepare.py ... --plan <name>` writes a
+`PLAN` file into the source dataset, and the runner reads it.
+
+| Plan | What it runs |
+|---|---|
+| `encoders` (default) | the encoder comparison described above |
+| `followup` | the remaining GPU experiments that need no dense index: reranking and abstention with `BAAI/bge-reranker-v2-m3`, judge and citation-check validation with the large entailment model, and generation with `microsoft/Phi-3-mini-4k-instruct`. Steps are independent; a failed step is recorded in `provenance.json` and the rest still run |
+| `full` | `encoders`, then a wider set including a 7B generator that needs about 15 GB of weights and two GPUs |
+
+All models in these plans are pinned to a Hub revision in the code.
+
+## Helper scripts
+
+| Script | Purpose |
+|---|---|
+| `prepare.py` | stage the bundle, `COMMIT`, `PLAN` and the kernel files locally; uploads nothing |
+| `kaggle_ipv4.py` | the Kaggle CLI with name resolution restricted to IPv4, for networks where uploads hang on IPv6 |
+| `validate_export.py` | check a downloaded export (file types, archive, commit, hashes, fingerprint, step exit codes, text-leak scan) and, with `--import`, copy results and provenance into `results/` |
 
 `python kaggle/run_gpu_experiments.py --dry-run` prints the plan without running it.
+The current state of submitted runs is in [docs/KAGGLE_HANDOFF.md](../docs/KAGGLE_HANDOFF.md).

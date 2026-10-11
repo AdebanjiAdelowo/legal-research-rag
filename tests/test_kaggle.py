@@ -231,3 +231,87 @@ def test_all_gpu_models_are_pinned_to_a_revision():
     assert len(RERANKERS[runner.RERANKER].revision) == 40
     assert all(len(rev) == 40 for _, rev in NLI_MODELS.values())
     assert len(runner.GENERATOR.split("@")[1]) == 40
+
+
+def _fake_export(tmp_path, repo, **overrides):
+    """A minimal export consistent with the temporary repository, then altered."""
+    import hashlib
+
+    commit = git(repo, "rev-parse", "HEAD")
+    export = tmp_path / "dl" / "legal-research-rag-export"
+    (export / "results" / "encoders").mkdir(parents=True)
+    prov = {
+        "commit": commit,
+        "plan": "encoders",
+        "failed_steps": [],
+        "runner_sha256": hashlib.sha256(
+            (repo / "kaggle" / "run_gpu_experiments.py").read_bytes()
+        ).hexdigest(),
+        "uv_lock_sha256": hashlib.sha256((repo / "uv.lock").read_bytes()).hexdigest(),
+        "steps": [{"step": "build", "seconds": 1.0, "exit": 0}],
+    }
+    prov.update(overrides.get("prov", {}))
+    (export / "provenance.json").write_text(json.dumps(prov))
+    (export / "fingerprint.json").write_text(
+        overrides.get("fingerprint", '{"corpus_version": "v1"}')
+    )
+    result = {"git": {"commit": overrides.get("result_commit", commit), "dirty_paths": []}}
+    (export / "results" / "encoders" / "encoders_a_vs_b.json").write_text(json.dumps(result))
+    return export.parent
+
+
+@pytest.fixture()
+def validator(repo, monkeypatch):
+    (repo / "uv.lock").write_text("lock\n")
+    (repo / "kaggle" / "expected_fingerprint.json").write_text('{"corpus_version": "v1"}')
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "two")
+    module = load("validate_export")
+    monkeypatch.setattr(module, "ROOT", repo)
+    return module
+
+
+def test_validator_accepts_a_consistent_export_and_imports_it(validator, repo, tmp_path):
+    folder = _fake_export(tmp_path, repo)
+    problems, notes, prov = validator.validate(folder)
+    assert problems == [] and any("fingerprint matches" in n for n in notes)
+    assert any("SKIPPED" in n for n in notes)  # no local data in the temporary repository
+    imported = validator.import_results(folder, prov)
+    assert (repo / "results" / "encoders" / "encoders_a_vs_b.json").exists()
+    run_dir = repo / imported[-1]
+    sums = json.loads((run_dir / "SHA256SUMS.json").read_text())
+    assert sums["commit_evaluated"] == prov["commit"] and len(sums["results"]) == 1
+
+
+@pytest.mark.parametrize(
+    "overrides,expected",
+    [
+        ({"prov": {"commit": "0" * 40}}, "is not in this repository"),
+        ({"prov": {"runner_sha256": "bad"}}, "runner used on Kaggle differs"),
+        ({"prov": {"uv_lock_sha256": "bad"}}, "uv.lock used on Kaggle differs"),
+        ({"fingerprint": '{"corpus_version": "other"}'}, "fingerprint differs"),
+        (
+            {"prov": {"steps": [{"step": "rag", "seconds": 1.0, "exit": 1}]}},
+            "not recorded as failed",
+        ),
+        ({"result_commit": "f" * 40}, "was produced at"),
+    ],
+)
+def test_validator_rejects_each_inconsistency(validator, repo, tmp_path, overrides, expected):
+    problems, _, _ = validator.validate(_fake_export(tmp_path, repo, **overrides))
+    assert any(expected in p for p in problems), problems
+
+
+def test_validator_rejects_unexpected_files_and_tolerates_declared_failures(
+    validator, repo, tmp_path
+):
+    folder = _fake_export(
+        tmp_path,
+        repo,
+        prov={"failed_steps": ["rag"], "steps": [{"step": "rag", "seconds": 1.0, "exit": 1}]},
+    )
+    problems, notes, _ = validator.validate(folder)
+    assert problems == [] and any("FAILED STEPS" in n for n in notes)
+    (folder / "legal-research-rag-export" / "corpus.jsonl").write_text("{}\n")
+    problems, _, _ = validator.validate(folder)
+    assert any("unexpected files" in p for p in problems)
