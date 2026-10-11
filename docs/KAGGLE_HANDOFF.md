@@ -17,6 +17,12 @@ sessions and the staged commit (the commands under "Next action"). Submit only w
 free slot and enough quota. After Kaggle accepts the submission, record the version
 number, commit, expected outputs and recovery commands in this file, then stop.
 
+The repository was pushed to a private GitHub repository on 2026-10-11:
+https://github.com/AdebanjiAdelowo/legal-research-rag. `main` has moved past `18973fd`
+with documentation, helper scripts and one fix that only matters where PyTorch is
+absent (the CI test job). None of it changes what runs on a GPU, so the bundle stays
+staged at `18973fd` as decided; the Kaggle run will record and evaluate that commit.
+
 ## Next action
 
 **Submit the follow-up run (kernel version 4) only when both conditions hold.** It is

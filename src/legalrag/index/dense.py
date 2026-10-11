@@ -87,9 +87,12 @@ ENCODERS: dict[str, EncoderSpec] = {
 
 
 def reset_gpu_peak() -> None:
-    """Start a fresh measurement of peak GPU memory (CUDA only)."""
-    import torch
-
+    """Start a fresh measurement of peak GPU memory (CUDA only). Does nothing when
+    PyTorch is not installed."""
+    try:
+        import torch
+    except ImportError:
+        return
     if torch.cuda.is_available():
         torch.cuda.reset_peak_memory_stats()
 
@@ -97,9 +100,11 @@ def reset_gpu_peak() -> None:
 def gpu_peak_mb() -> dict | None:
     """Peak GPU memory since ``reset_gpu_peak``: tensors allocated, and the larger
     amount the allocator reserved. None without CUDA; Apple's MPS backend exposes no
-    comparable peak counter."""
-    import torch
-
+    comparable peak counter. None also when PyTorch is not installed."""
+    try:
+        import torch
+    except ImportError:
+        return None
     if not torch.cuda.is_available():
         return None
     return {
