@@ -3,6 +3,20 @@
 Where remote GPU work stands and exactly what the next session should do. Updated
 2026-10-11 12:20 UTC.
 
+## Decision in force
+
+Decided 2026-10-11: **wait for the weekly GPU quota to refresh on 2026-10-17 00:00 UTC,
+then submit the staged follow-up plan unchanged.** Do not split it, restage it or
+submit it earlier. Do not rerun the version 2 comparison. Do not cancel or interfere
+with `research-innovation-monitor-gpu`. Do not poll Kaggle while waiting. Nothing is
+pushed to GitHub without explicit authorisation. The staging folder and the private
+dataset stay as they are.
+
+On the next session, before submitting: check the actual quota, the active GPU
+sessions and the staged commit (the commands under "Next action"). Submit only with a
+free slot and enough quota. After Kaggle accepts the submission, record the version
+number, commit, expected outputs and recovery commands in this file, then stop.
+
 ## Next action
 
 **Submit the follow-up run (kernel version 4) only when both conditions hold.** It is
