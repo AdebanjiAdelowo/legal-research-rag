@@ -113,7 +113,7 @@ def retrieval() -> str:
 def encoders() -> str:
     folder = RESULTS / "encoders"
     files = sorted(folder.glob("encoders_*.json")) if folder.exists() else []
-    files = [f for f in files if "_limit" not in f.name]
+    files = [f for f in files if "_limit" not in f.name and "_per_query" not in f.name]
     if not files:
         return (
             "**Pending: not yet run.** No measurement exists for this comparison. It "
@@ -153,6 +153,18 @@ def encoders() -> str:
             out.append(table(
                 ["Metric", "Difference"],
                 [[n.split("[")[1].rstrip("]"), diff(c)] for n, c in r["comparisons"][kind].items()]))  # fmt: skip
+        if "per_query_differences" in r:
+            rows = []
+            for kind, title in (("dense", "Dense"), ("hybrid", "Hybrid")):
+                for metric in ("ndcg@10", "recall@10"):
+                    d = r["per_query_differences"][kind][metric]
+                    rows.append([title, metric, d["legal_better"], d["tied"],
+                                 d["general_better"], f"{d['quantiles']['p05']:+.3f}",
+                                 f"{d['quantiles']['p95']:+.3f}"])  # fmt: skip
+            out.append("**Per-query differences** (legal minus general):")
+            out.append(table(
+                ["System", "Metric", "Legal better", "Tied", "General better",
+                 "5th percentile", "95th percentile"], rows))  # fmt: skip
         rows = []
         for key, e in r["encoders"].items():
             b, st, lat = e["index_build"] or {}, e["storage"], e["latency"]

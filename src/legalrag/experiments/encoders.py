@@ -17,6 +17,9 @@ What is reported for each encoder:
 * query latency: encoding one query, and exact search over all passages;
 * peak GPU memory while encoding queries.
 
+Per-query metric values for every system are written to a second file, keyed by
+query identifier, with counts of queries on which each encoder is better.
+
 What is tuned, and where: only the BM25 weight of the hybrid, separately for each
 encoder, on ``dev``. Nothing is selected on ``test``; both encoders are reported.
 The paired differences (legal minus general) carry bootstrap intervals and
@@ -48,6 +51,12 @@ FUSION_DEPTH = 200
 DEPTH = 1000
 TARGET = "ndcg@10"
 COMPARED = ("ndcg@10", "mrr@10", "recall@1", "recall@10", "recall@100", "passage_hit@10")
+# Written per query, by query identifier, to a separate file. Identifiers and numbers
+# only: no query text, no passage text.
+PER_QUERY_METRICS = (
+    "recall@1", "recall@5", "recall@10", "recall@20", "recall@100", "mrr@10", "ndcg@10",
+    "passage_hit@10",
+)  # fmt: skip
 # Build settings that must be equal for the comparison to be controlled.
 MUST_MATCH = ("max_tokens", "precision", "batch_size", "stored_dtype", "normalised", "device")
 
@@ -71,6 +80,29 @@ def check_identical_conditions(metas: dict[str, dict]) -> dict:
             raise ValueError(f"encoders differ in build setting {field!r}: {values}")
         shared[field] = values[keys[0]]
     return shared
+
+
+def difference_summary(a: list[float], b: list[float]) -> dict:
+    """How the per-query differences ``a - b`` are distributed.
+
+    A mean can hide that one system wins a few queries by a lot and loses many by a
+    little. Counts of wins, ties and losses and the spread are reported beside it.
+    """
+    pairs = [(x, y) for x, y in zip(a, b, strict=True) if x == x and y == y]
+    d = np.array([x - y for x, y in pairs], dtype=np.float64)
+    if d.size == 0:
+        return {"n": 0}
+    q = np.quantile(d, [0.05, 0.25, 0.5, 0.75, 0.95])
+    return {
+        "n": int(d.size),
+        "legal_better": int((d > 0).sum()),
+        "tied": int((d == 0).sum()),
+        "general_better": int((d < 0).sum()),
+        "mean": round(float(d.mean()), 4),
+        "std": round(float(d.std(ddof=1)), 4) if d.size > 1 else 0.0,
+        "quantiles": {k: round(float(v), 4) for k, v in zip(
+            ("p05", "p25", "p50", "p75", "p95"), q, strict=True)},
+    }  # fmt: skip
 
 
 def _fuse(bm25: Run, dense: Run, alpha: float) -> Run:
@@ -195,7 +227,28 @@ def compare_encoders(
             per_query[f"hybrid-{key}"], per_query["bm25"]
         )
 
+    per_query_differences = {
+        kind: {
+            m: difference_summary(
+                per_query[f"{kind}-{legal}"][m], per_query[f"{kind}-{general}"][m]
+            )
+            for m in COMPARED
+        }
+        for kind in ("dense", "hybrid")
+    }
     return {
+        "per_query": {
+            "query_ids": [q.query_id for q in test],
+            "metrics": list(PER_QUERY_METRICS),
+            "systems": {
+                name: {
+                    m: [round(v, 4) if v == v else None for v in values[m]]
+                    for m in PER_QUERY_METRICS
+                }
+                for name, values in per_query.items()
+            },
+        },
+        "per_query_differences": per_query_differences,
         "identical_conditions": {
             **conditions,
             "dev_queries": {"count": len(dev), "sha256": query_fingerprint(dev)},
@@ -252,5 +305,12 @@ def run(
         **body,
     )
     name = f"encoders_{general}_vs_{legal}" + (f"_limit{limit}" if limit else "")
-    write_result(bench.paths.results / "encoders" / f"{name}.json", result)
+    out = bench.paths.results / "encoders"
+    per_query = result.pop("per_query")
+    write_result(out / f"{name}.json", result)
+    # Per-query values go in their own file so the summary stays small.
+    (out / f"{name}_per_query.json").write_text(
+        json.dumps({"corpus_version": bench.store.corpus_version, "git": result["git"],
+                    **per_query}) + "\n"
+    )  # fmt: skip
     return result

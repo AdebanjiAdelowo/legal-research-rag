@@ -197,6 +197,12 @@ def test_encoder_comparison_reports_everything_under_identical_conditions(tmp_pa
         assert e["storage"]["dimension"] == 64 and e["storage"]["disk_mb"] >= 0
         assert e["latency"]["query_encoding"]["mean_ms"] >= 0 and e["latency"]["queries"] == 3
         assert 0.1 <= out["tuned_on_dev"][key]["alpha_bm25"] <= 0.9
+    pq = out["per_query"]
+    assert pq["query_ids"] == [q.query_id for q in queries]
+    assert all(len(v["ndcg@10"]) == len(queries) for v in pq["systems"].values())
+    assert "text" not in str(pq)[:200] and all(isinstance(i, str) for i in pq["query_ids"])
+    summary = out["per_query_differences"]["dense"]["ndcg@10"]
+    assert summary["legal_better"] + summary["tied"] + summary["general_better"] == summary["n"]
     # The stand-in "general" encoder cannot see two legal terms, so it must not win.
     d = out["comparisons"]["dense"]["legal minus general [recall@10]"]["diff"]
     assert d >= 0
@@ -238,3 +244,12 @@ def test_fingerprint_detects_any_change():
     assert fingerprint_differences({"corpus_version": "x"}, expected)[0].startswith(
         "chunks: missing"
     )
+
+
+def test_difference_summary_counts_and_spread():
+    from legalrag.experiments.encoders import difference_summary
+
+    d = difference_summary([1.0, 0.5, 0.0, 0.2, float("nan")], [0.0, 0.5, 1.0, 0.1, 0.3])
+    assert (d["n"], d["legal_better"], d["tied"], d["general_better"]) == (4, 2, 1, 1)
+    assert d["mean"] == 0.025 and d["quantiles"]["p50"] == 0.05
+    assert difference_summary([], []) == {"n": 0}

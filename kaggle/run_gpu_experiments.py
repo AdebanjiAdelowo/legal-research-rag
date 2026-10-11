@@ -20,7 +20,7 @@ What the script guarantees, and stops if it cannot:
   exceed the sequence limit.
 * **Identical conditions.** Both encoders use one batch size, sequence limit and
   precision. If the GPU runs out of memory, both are rebuilt at a smaller batch size.
-* **No restricted text in the export.** Work happens under ``/tmp``. Only result
+* **No restricted text in the export.** Work happens under an unsaved scratch directory. Only result
   files, index metadata, the build manifest, logs and provenance are copied to
   ``/kaggle/working``, and the export is scanned before it is zipped.
 
@@ -51,7 +51,23 @@ import time
 from pathlib import Path
 
 INPUT = Path("/kaggle/input")
-WORK = Path(os.environ.get("LEGALRAG_WORK", "/tmp/legalrag"))
+
+
+def scratch_root() -> Path:
+    """Where to work: the unsaved location with the most free space.
+
+    Never ``/kaggle/working``: everything there becomes notebook output, and the
+    corpus and benchmark must not be exported.
+    """
+    override = os.environ.get("LEGALRAG_WORK")
+    if override:
+        return Path(override)
+    candidates = [p for p in (Path("/kaggle/tmp"), Path("/tmp")) if p.is_dir()]
+    best = max(candidates or [Path("/tmp")], key=lambda p: shutil.disk_usage(p).free)
+    return best / "legalrag"
+
+
+WORK = scratch_root()
 REPO = WORK / "repo"
 VENV = WORK / "venv"
 EXPORT = Path(os.environ.get("LEGALRAG_EXPORT", "/kaggle/working/legal-research-rag-export"))
@@ -60,7 +76,7 @@ BUNDLE = "legal-research-rag.bundle"
 GENERAL, LEGAL = "modernbert-general", "modernbert-legal"
 BM25 = ("k1=1.6", "b=0.75")  # tuned on development queries; see results/retrieval
 BATCH_SIZES = (128, 64, 32, 16)
-MIN_FREE_DISK_GB = 20
+MIN_FREE_DISK_GB = 14
 MIN_GPU_GB = 12
 # Files that may leave the machine. Anything else under the export root aborts the run.
 EXPORT_SUFFIXES = {".json", ".txt", ".log", ".md"}
@@ -172,7 +188,10 @@ def verify_checkout(commit: str) -> str:
 
 def preflight() -> dict:
     free = shutil.disk_usage(WORK).free / 1e9
-    info: dict = {"free_disk_gb": round(free, 1), "memory_limit_gb": memory_limit_gb()}
+    info: dict = {"work_directory": str(WORK), "free_disk_gb": round(free, 1),
+                  "memory_limit_gb": memory_limit_gb()}  # fmt: skip
+    if Path("/kaggle/working") in WORK.parents:
+        raise SystemExit("the work directory must not be under /kaggle/working")
     if free < MIN_FREE_DISK_GB:
         raise SystemExit(f"{free:.1f} GB free under {WORK}; need {MIN_FREE_DISK_GB}")
     try:
