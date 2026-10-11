@@ -32,8 +32,11 @@ def main() -> None:
         ).to_dict()
     gpu = stats["gpuQuota"]
     allowed, used = seconds(gpu["totalTimeAllowed"]), seconds(gpu["timeUsed"])
-    print(f"GPU quota: {allowed / 3600:.1f} h allowed, {used / 3600:.2f} h used, "
-          f"{(allowed - used) / 3600:.2f} h remaining; refreshes {stats['quotaRefreshTime']}")  # fmt: skip
+    remaining = (allowed - used) / 3600
+    print(
+        f"GPU quota: {allowed / 3600:.1f} h allowed, {used / 3600:.2f} h used, "
+        f"{remaining:.2f} h remaining; refreshes {stats['quotaRefreshTime']}"
+    )
 
 
 if __name__ == "__main__":
